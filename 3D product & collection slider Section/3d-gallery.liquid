@@ -1,0 +1,605 @@
+{% schema %}
+{
+  "name": "3D Gallery",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Gallery Settings"
+    },
+    {
+      "type": "range",
+      "id": "scroll_per_item",
+      "min": 300,
+      "max": 1000,
+      "step": 50,
+      "unit": "px",
+      "label": "Scroll Per Item",
+      "default": 500
+    },
+    {
+      "type": "range", 
+      "id": "distance",
+      "min": 500,
+      "max": 2500,
+      "step": 100,
+      "unit": "px",
+      "label": "3D Distance",
+      "default": 1500
+    },
+    {
+      "type": "header",
+      "content": "Mobile Settings"
+    },
+    {
+      "type": "checkbox",
+      "id": "hide_on_mobile",
+      "label": "Hide Section on Mobile",
+      "default": false,
+      "info": "When enabled, this section will not be displayed on mobile devices"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "gallery_image",
+      "name": "Gallery Image",
+      "limit": 10,
+      "settings": [
+        {
+          "type": "header",
+          "content": "Content"
+        },
+        {
+          "type": "select",
+          "id": "content_type",
+          "label": "Content Type",
+          "options": [
+            {
+              "value": "image",
+              "label": "Image Only"
+            },
+            {
+              "value": "product",
+              "label": "Product"
+            },
+            {
+              "value": "collection",
+              "label": "Collection"
+            }
+          ],
+          "default": "image"
+        },
+        {
+          "type": "image_picker",
+          "id": "image",
+          "label": "Image",
+          "info": "Used when 'Image Only' is selected or as fallback for product/collection"
+        },
+        {
+          "type": "product",
+          "id": "product",
+          "label": "Product",
+          "info": "Select a product to feature"
+        },
+        {
+          "type": "collection",
+          "id": "collection",
+          "label": "Collection",
+          "info": "Select a collection to feature"
+        },
+        {
+          "type": "header",
+          "content": "Product Name Settings"
+        },
+        {
+          "type": "checkbox",
+          "id": "show_product_name",
+          "label": "Show Product Name (Desktop)",
+          "default": true
+        },
+        {
+          "type": "checkbox",
+          "id": "show_product_name_mobile",
+          "label": "Show Product Name (Mobile)",
+          "default": true,
+          "info": "Controls visibility on mobile devices"
+        },
+        {
+          "type": "header",
+          "content": "Button Settings"
+        },
+        {
+          "type": "checkbox",
+          "id": "show_button",
+          "label": "Show Button (Desktop)",
+          "default": false
+        },
+        {
+          "type": "checkbox",
+          "id": "show_button_mobile",
+          "label": "Show Button (Mobile)",
+          "default": false,
+          "info": "Controls visibility on mobile devices"
+        },
+        {
+          "type": "text",
+          "id": "button_text",
+          "label": "Button Text",
+          "default": "View Details"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "3D Gallery",
+      "blocks": [
+        {
+          "type": "gallery_image"
+        },
+        {
+          "type": "gallery_image"
+        },
+        {
+          "type": "gallery_image"
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}
+
+{%- style -%}
+.gallery-wrapper {
+  --smooth-scroll: true;
+  position: relative;
+}
+.gsap-gallery {
+  height: 100vh;
+  background: #000000;
+  width: 100%;
+  position: relative;
+  overflow: hidden;
+}
+.gallery-container {
+  position: relative;
+  height: 100vh;
+  width: 100%;
+}
+.mdw-image-gallery-bg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  opacity: 0.6;
+}
+.mdw-image-gallery-bg img {
+  position: absolute;
+  left: 0;
+  top: 0;
+  filter: blur(50px);
+  transform: scale(1.125);
+  max-width: unset;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  transition: opacity 0.5s ease;
+}
+.gsap-gallery-image {
+  height: 100vh;
+  width: 100%;
+  position: relative;
+  transform-style: preserve-3d;
+  perspective: 1000px;
+}
+.gsap-gallery .e-con {
+  position: absolute;
+  top: 50%;
+  left: 70%;
+  transform: translate(-50%, -50%) translateZ(0);
+  opacity: 0;
+  width: 460px;
+  height: 460px;
+  transition: transform 0.5s ease, opacity 0.5s ease;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+.gsap-gallery .e-con:nth-child(even) {
+  left: 30%;
+}
+.gallery-item {
+  width: 100%;
+  height: 100%;
+  display: block;
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+}
+.gallery-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.5s ease;
+}
+.gallery-item:hover .gallery-image {
+  transform: scale(1.05);
+}
+.product-name {
+  position: absolute;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: rgba(0, 0, 0, 0.7);
+  color: #ffffff;
+  padding: 8px 16px;
+  border-radius: 4px;
+  font-weight: bold;
+  text-align: center;
+  z-index: 2;
+  white-space: nowrap;
+  max-width: 90%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.gallery-button {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #ffffff;
+  color: #000000;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-weight: bold;
+  text-align: center;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: 2;
+  white-space: nowrap;
+  border: 2px solid #000000;
+}
+.gallery-item:hover .gallery-button {
+  opacity: 1;
+}
+.gallery-container.is-fixed {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+}
+.gallery-container.is-bottom {
+  position: absolute;
+  bottom: 0;
+  top: auto;
+}
+@media (max-width: 1024px) {
+  .gsap-gallery .e-con {
+    left: 80%;
+  }
+  
+  .gsap-gallery .e-con:nth-child(even) {
+    left: 20%;
+  }
+}
+@media (max-width: 768px) {
+  {% if section.settings.hide_on_mobile %}
+  .gallery-wrapper {
+    display: none;
+  }
+  {% else %}
+  .gsap-gallery,
+  .gallery-container,
+  .gsap-gallery-image {
+    height: auto;
+  }
+  
+  .gsap-gallery {
+    padding: 20px;
+  }
+  
+  .gsap-gallery .e-con {
+    position: relative;
+    transform: none !important;
+    opacity: 1 !important;
+    margin: 0 auto 20px;
+    width: 100% !important;
+    max-width: 460px;
+    left: 0 !important;
+    top: 0;
+  }
+  
+  .gsap-gallery .e-con:nth-child(even) {
+    left: 0 !important;
+  }
+  
+  .gallery-container.is-fixed {
+    position: relative;
+  }
+  
+  .product-name.mobile-hide {
+    display: none;
+  }
+  
+  .gallery-button.mobile-hide {
+    display: none;
+  }
+  
+  .gallery-button.mobile-show {
+    opacity: 1;
+  }
+  {% endif %}
+}
+{%- endstyle -%}
+
+{% unless section.settings.hide_on_mobile and request.design_mode != true and request.device.mobile? %}
+<div class="gallery-wrapper">
+  <div class="gsap-gallery" data-scroll-per-item="{{ section.settings.scroll_per_item }}" data-distance="{{ section.settings.distance }}">
+    <div class="gallery-container">
+      <div class="mdw-image-gallery-bg">
+        {%- for block in section.blocks -%}
+          {%- if block.type == 'gallery_image' -%}
+            {%- case block.settings.content_type -%}
+              {%- when 'product' -%}
+                {%- if block.settings.product != blank -%}
+                  {%- assign bg_image = block.settings.product.featured_image -%}
+                {%- else -%}
+                  {%- assign bg_image = block.settings.image -%}
+                {%- endif -%}
+              {%- when 'collection' -%}
+                {%- if block.settings.collection != blank and block.settings.collection.image != blank -%}
+                  {%- assign bg_image = block.settings.collection.image -%}
+                {%- else -%}
+                  {%- assign bg_image = block.settings.image -%}
+                {%- endif -%}
+              {%- else -%}
+                {%- assign bg_image = block.settings.image -%}
+            {%- endcase -%}
+          
+            {%- if bg_image != blank -%}
+              {{ bg_image | image_url: width: 1920 | image_tag: 
+                loading: 'lazy',
+                class: 'bg-image'
+              }}
+            {%- endif -%}
+          {%- endif -%}
+        {%- endfor -%}
+      </div>
+      <div class="gsap-gallery-image">
+        {%- for block in section.blocks -%}
+          {%- if block.type == 'gallery_image' -%}
+            <div class="e-con">
+              {%- case block.settings.content_type -%}
+                {%- when 'product' -%}
+                  {%- if block.settings.product != blank -%}
+                    {%- assign item_url = block.settings.product.url -%}
+                    {%- assign display_image = block.settings.product.featured_image -%}
+                    {%- assign item_title = block.settings.product.title -%}
+                  {%- else -%}
+                    {%- assign item_url = '#' -%}
+                    {%- assign display_image = block.settings.image -%}
+                    {%- assign item_title = '' -%}
+                  {%- endif -%}
+                {%- when 'collection' -%}
+                  {%- if block.settings.collection != blank -%}
+                    {%- assign item_url = block.settings.collection.url -%}
+                    {%- assign item_title = block.settings.collection.title -%}
+                    {%- if block.settings.collection.image != blank -%}
+                      {%- assign display_image = block.settings.collection.image -%}
+                    {%- else -%}
+                      {%- assign display_image = block.settings.image -%}
+                    {%- endif -%}
+                  {%- else -%}
+                    {%- assign item_url = '#' -%}
+                    {%- assign display_image = block.settings.image -%}
+                    {%- assign item_title = '' -%}
+                  {%- endif -%}
+                {%- else -%}
+                  {%- assign item_url = '#' -%}
+                  {%- assign display_image = block.settings.image -%}
+                  {%- assign item_title = '' -%}
+              {%- endcase -%}
+              
+              {%- assign show_name_mobile = block.settings.show_product_name_mobile -%}
+              {%- assign show_button_mobile = block.settings.show_button_mobile -%}
+              
+              <a href="{{ item_url }}" class="gallery-item">
+                {%- if display_image != blank -%}
+                  {{ display_image | image_url: width: 460 | image_tag: 
+                    loading: 'lazy',
+                    width: 460,
+                    height: 460,
+                    class: 'gallery-image'
+                  }}
+                {%- endif -%}
+                
+                {%- if item_title != '' and block.settings.show_product_name -%}
+                  <div class="product-name {% if show_name_mobile != true %}mobile-hide{% endif %}">{{ item_title }}</div>
+                {%- endif -%}
+                
+                {%- if block.settings.show_button -%}
+                  <div class="gallery-button {% if show_button_mobile != true %}mobile-hide{% else %}mobile-show{% endif %}">{{ block.settings.button_text }}</div>
+                {%- endif -%}
+              </a>
+            </div>
+          {%- endif -%}
+        {%- endfor -%}
+      </div>
+    </div>
+  </div>
+</div>
+{% endunless %}
+
+<script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://unpkg.com/lenis@1.1.11/dist/lenis.min.js"></script>
+<script>
+if (!window.MDWNonce113) {
+  window.MDWNonce113 = true;
+  
+  (function($) {
+    class GalleryController {
+      constructor() {
+        this.galleries = [];
+        this.init();
+      }
+      
+      init() {
+        $('.gsap-gallery').each((_, element) => {
+          this.galleries.push(new Gallery($(element)));
+        });
+        
+        if (this.shouldEnableSmoothScroll()) {
+          this.initSmoothScroll();
+        }
+        
+        this.bindEvents();
+      }
+      
+      shouldEnableSmoothScroll() {
+        return getComputedStyle(document.body).getPropertyValue('--smooth-scroll') === 'true'
+          && !this.isMobile()
+          && !this.isSafari();
+      }
+      
+      isMobile() {
+        return $(window).width() < 768;
+      }
+      
+      isSafari() {
+        return /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+      }
+      
+      initSmoothScroll() {
+        const lenis = new Lenis({
+          duration: 1.2,
+          easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+          orientation: 'vertical',
+          smoothWheel: true
+        });
+        
+        const raf = (time) => {
+          lenis.raf(time);
+          requestAnimationFrame(raf);
+        };
+        
+        requestAnimationFrame(raf);
+      }
+      
+      bindEvents() {
+        $(window).on('scroll resize', () => {
+          this.galleries.forEach(gallery => gallery.update());
+        });
+      }
+    }
+    
+    class Gallery {
+      constructor($element) {
+        this.$element = $element;
+        this.$container = $element.find('.gallery-container');
+        this.$images = $element.find('.e-con');
+        this.$backgrounds = $element.find('.mdw-image-gallery-bg img');
+        
+        this.options = {
+          scrollPerItem: parseInt($element.data('scroll-per-item')) || 500,
+          distance: parseInt($element.data('distance')) || 1500
+        };
+        
+        this.totalHeight = this.$images.length * this.options.scrollPerItem;
+        this.$element.height(this.totalHeight + window.innerHeight);
+        
+        this.initializePositions();
+      }
+      
+      initializePositions() {
+        this.$images.each((index, element) => {
+          const $image = $(element);
+          const initialZ = -index * this.options.distance;
+          
+          $image.css({
+            transform: `translate(-50%, -50%) translateZ(${initialZ}px)`,
+            zIndex: this.$images.length - index,
+            opacity: index === 0 ? 1 : 0
+          });
+          // Set initial background
+          if(index === 0) {
+            this.$backgrounds.eq(0).css('opacity', 1);
+          }
+        });
+      }
+      
+      update() {
+        if(this.isMobile()) return;
+        
+        const rect = this.$element[0].getBoundingClientRect();
+        const scrollProgress = (window.pageYOffset - this.$element.offset().top) / (this.$element.height() - window.innerHeight);
+        
+        this.updateFixedState(rect);
+        
+        if (scrollProgress >= 0 && scrollProgress <= 1) {
+          this.updateImagePositions(scrollProgress);
+          this.updateBackgrounds(scrollProgress);
+        }
+      }
+      
+      isMobile() {
+        return $(window).width() < 768;
+      }
+      
+      updateFixedState(rect) {
+        const shouldBeFixed = rect.top <= 0 && rect.bottom > window.innerHeight;
+        const shouldBeBottom = rect.bottom <= window.innerHeight;
+        
+        this.$container.toggleClass('is-fixed', shouldBeFixed && !shouldBeBottom);
+        this.$container.toggleClass('is-bottom', shouldBeBottom);
+      }
+      
+      updateImagePositions(progress) {
+        const totalMovement = this.options.distance * (this.$images.length - 1);
+        const currentMove = progress * totalMovement;
+        
+        this.$images.each((index, element) => {
+          const $image = $(element);
+          const initialZ = -index * this.options.distance;
+          const currentZ = initialZ + currentMove;
+          const opacity = this.calculateOpacity(currentZ);
+          
+          $image.css({
+            transform: `translate(-50%, -50%) translateZ(${currentZ}px)`,
+            opacity: opacity
+          });
+        });
+      }
+      
+      updateBackgrounds(progress) {
+        const totalImages = this.$images.length;
+        const activeIndex = Math.floor(progress * (totalImages - 1));
+        
+        this.$backgrounds.each((index, element) => {
+          const $bg = $(element);
+          const opacity = index === activeIndex ? 1 : 0;
+          
+          if($bg.css('opacity') !== opacity) {
+            $bg.css('opacity', opacity);
+          }
+        });
+      }
+      
+      calculateOpacity(z) {
+        const visibleRange = 1000;
+        const opacity = 1 - Math.abs(z) / visibleRange;
+        return Math.max(0, Math.min(1, opacity));
+      }
+    }
+    
+    // Initialize galleries when document is ready
+    $(document).ready(() => {
+      new GalleryController();
+    });
+    
+  })(jQuery);
+}
+</script>
