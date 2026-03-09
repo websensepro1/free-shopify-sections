@@ -1,0 +1,603 @@
+{% schema %}
+{
+  "name": "Expandable Image Grid",
+  "tag": "section",
+  "class": "expandable-image-section",
+  "settings": [
+    {
+      "type": "text",
+      "id": "title",
+      "label": "Section Title",
+      "default": "Our Team"
+    },
+    {
+      "type": "select",
+      "id": "section_height",
+      "label": "Section Height",
+      "options": [
+        {
+          "value": "auto",
+          "label": "Auto"
+        },
+        {
+          "value": "100vh",
+          "label": "Full Height"
+        },
+        {
+          "value": "500px",
+          "label": "500px"
+        },
+        {
+          "value": "600px",
+          "label": "600px"
+        },
+        {
+          "value": "700px",
+          "label": "700px"
+        }
+      ],
+      "default": "600px"
+    },
+    {
+      "type": "range",
+      "id": "transition_speed",
+      "label": "Transition Speed",
+      "min": 200,
+      "max": 1000,
+      "step": 100,
+      "default": 400,
+      "unit": "ms"
+    }
+  ],
+  "blocks": [
+    {
+      "name": "Column",
+      "type": "column",
+      "limit": 6,
+      "settings": [
+        {
+          "type": "image_picker",
+          "id": "image",
+          "label": "Background Image"
+        },
+        {
+          "type": "header",
+          "content": "Overlay Settings"
+        },
+        {
+          "type": "color",
+          "id": "overlay_color_1",
+          "label": "Overlay Color 1",
+          "default": "#000000"
+        },
+        {
+          "type": "range",
+          "id": "overlay_color_1_position",
+          "label": "Color 1 Position",
+          "min": 0,
+          "max": 100,
+          "step": 5,
+          "default": 0,
+          "unit": "%"
+        },
+        {
+          "type": "color",
+          "id": "overlay_color_2",
+          "label": "Overlay Color 2",
+          "default": "#FF0000"
+        },
+        {
+          "type": "range",
+          "id": "overlay_color_2_position",
+          "label": "Color 2 Position",
+          "min": 0,
+          "max": 100,
+          "step": 5,
+          "default": 100,
+          "unit": "%"
+        },
+        {
+          "type": "range",
+          "id": "overlay_opacity",
+          "label": "Overlay Opacity",
+          "min": 0,
+          "max": 100,
+          "step": 5,
+          "default": 70,
+          "unit": "%"
+        },
+        {
+          "type": "header",
+          "content": "Content Settings"
+        },
+        {
+          "type": "text",
+          "id": "heading",
+          "label": "Heading",
+          "default": "Team Member"
+        },
+        {
+          "type": "color",
+          "id": "heading_color",
+          "label": "Heading Color",
+          "default": "#FFFFFF"
+        },
+        {
+          "type": "range",
+          "id": "heading_size",
+          "label": "Heading Font Size",
+          "min": 12,
+          "max": 48,
+          "step": 1,
+          "default": 24,
+          "unit": "px"
+        },
+        {
+          "type": "richtext",
+          "id": "description",
+          "label": "Description",
+          "default": "<p>Add a description about this team member</p>"
+        },
+        {
+          "type": "color",
+          "id": "text_color",
+          "label": "Text Color",
+          "default": "#FFFFFF"
+        },
+        {
+          "type": "range",
+          "id": "text_size",
+          "label": "Text Font Size",
+          "min": 10,
+          "max": 32,
+          "step": 1,
+          "default": 16,
+          "unit": "px"
+        },
+        {
+          "type": "header",
+          "content": "Social Media Links"
+        },
+        {
+          "type": "range",
+          "id": "social_icon_size",
+          "label": "Social Icon Size",
+          "min": 15,
+          "max": 50,
+          "step": 5,
+          "default": 30,
+          "unit": "px"
+        },
+        {
+          "type": "url",
+          "id": "social_link_1",
+          "label": "Social Link 1"
+        },
+        {
+          "type": "select",
+          "id": "social_icon_1",
+          "label": "Social Icon 1",
+          "options": [
+            {
+              "value": "facebook",
+              "label": "Facebook"
+            },
+            {
+              "value": "twitter",
+              "label": "Twitter"
+            },
+            {
+              "value": "instagram",
+              "label": "Instagram"
+            },
+            {
+              "value": "linkedin",
+              "label": "LinkedIn"
+            }
+          ],
+          "default": "facebook"
+        },
+        {
+          "type": "url",
+          "id": "social_link_2",
+          "label": "Social Link 2"
+        },
+        {
+          "type": "select",
+          "id": "social_icon_2",
+          "label": "Social Icon 2",
+          "options": [
+            {
+              "value": "facebook",
+              "label": "Facebook"
+            },
+            {
+              "value": "twitter",
+              "label": "Twitter"
+            },
+            {
+              "value": "instagram",
+              "label": "Instagram"
+            },
+            {
+              "value": "linkedin",
+              "label": "LinkedIn"
+            }
+          ],
+          "default": "twitter"
+        },
+        {
+          "type": "url",
+          "id": "social_link_3",
+          "label": "Social Link 3"
+        },
+        {
+          "type": "select",
+          "id": "social_icon_3",
+          "label": "Social Icon 3",
+          "options": [
+            {
+              "value": "facebook",
+              "label": "Facebook"
+            },
+            {
+              "value": "twitter",
+              "label": "Twitter"
+            },
+            {
+              "value": "instagram",
+              "label": "Instagram"
+            },
+            {
+              "value": "linkedin",
+              "label": "LinkedIn"
+            }
+          ],
+          "default": "instagram"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Expandable Image Grid",
+      "blocks": [
+        {
+          "type": "column"
+        },
+        {
+          "type": "column"
+        },
+        {
+          "type": "column"
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}
+
+<div class="expandable-section-wrapper" style="height: {{ section.settings.section_height }};" data-transition-speed="{{ section.settings.transition_speed }}">
+  {% if section.settings.title != blank %}
+    <h2 class="expandable-section-title">{{ section.settings.title }}</h2>
+  {% endif %}
+  
+  <div class="expandable-container">
+    {% for block in section.blocks %}
+      {% if block.type == 'column' %}
+        <div class="expandable-column" {{ block.shopify_attributes }}>
+          <div class="column-inner" style="background-image: url('{{ block.settings.image | img_url: 'master' }}');">
+            <div class="overlay" style="background: linear-gradient(to bottom, {{ block.settings.overlay_color_1 }} {{ block.settings.overlay_color_1_position }}%, {{ block.settings.overlay_color_2 }} {{ block.settings.overlay_color_2_position }}%); opacity: {{ block.settings.overlay_opacity | divided_by: 100.0 }};"></div>
+            
+            <div class="content-wrapper">
+              {% if block.settings.heading != blank %}
+                <h3 class="column-heading" style="color: {{ block.settings.heading_color }}; font-size: {{ block.settings.heading_size }}px;">{{ block.settings.heading }}</h3>
+              {% endif %}
+              
+              {% if block.settings.description != blank %}
+                <div class="column-description" style="color: {{ block.settings.text_color }}; font-size: {{ block.settings.text_size }}px;">{{ block.settings.description }}</div>
+              {% endif %}
+              
+              <div class="social-icons">
+                {% if block.settings.social_link_1 != blank %}
+                  <a href="{{ block.settings.social_link_1 }}" class="social-icon {{ block.settings.social_icon_1 }}" target="_blank" aria-label="{{ block.settings.social_icon_1 }}" style="width: {{ block.settings.social_icon_size }}px; height: {{ block.settings.social_icon_size }}px;">
+                    {% case block.settings.social_icon_1 %}
+                      {% when 'facebook' %}
+                        <svg xmlns="http://www.w3.org/2000/svg" width="{{ block.settings.social_icon_size | divided_by: 2 }}" height="{{ block.settings.social_icon_size | divided_by: 2 }}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path></svg>
+                      {% when 'twitter' %}
+                        <svg xmlns="http://www.w3.org/2000/svg" width="{{ block.settings.social_icon_size | divided_by: 2 }}" height="{{ block.settings.social_icon_size | divided_by: 2 }}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z"></path></svg>
+                      {% when 'instagram' %}
+                        <svg xmlns="http://www.w3.org/2000/svg" width="{{ block.settings.social_icon_size | divided_by: 2 }}" height="{{ block.settings.social_icon_size | divided_by: 2 }}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
+                      {% when 'linkedin' %}
+                        <svg xmlns="http://www.w3.org/2000/svg" width="{{ block.settings.social_icon_size | divided_by: 2 }}" height="{{ block.settings.social_icon_size | divided_by: 2 }}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path><rect x="2" y="9" width="4" height="12"></rect><circle cx="4" cy="4" r="2"></circle></svg>
+                    {% endcase %}
+                  </a>
+                {% endif %}
+                
+                {% if block.settings.social_link_2 != blank %}
+                  <a href="{{ block.settings.social_link_2 }}" class="social-icon {{ block.settings.social_icon_2 }}" target="_blank" aria-label="{{ block.settings.social_icon_2 }}" style="width: {{ block.settings.social_icon_size }}px; height: {{ block.settings.social_icon_size }}px;">
+                    {% case block.settings.social_icon_2 %}
+                      {% when 'facebook' %}
+                        <svg xmlns="http://www.w3.org/2000/svg" width="{{ block.settings.social_icon_size | divided_by: 2 }}" height="{{ block.settings.social_icon_size | divided_by: 2 }}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path></svg>
+                      {% when 'twitter' %}
+                        <svg xmlns="http://www.w3.org/2000/svg" width="{{ block.settings.social_icon_size | divided_by: 2 }}" height="{{ block.settings.social_icon_size | divided_by: 2 }}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z"></path></svg>
+                      {% when 'instagram' %}
+                        <svg xmlns="http://www.w3.org/2000/svg" width="{{ block.settings.social_icon_size | divided_by: 2 }}" height="{{ block.settings.social_icon_size | divided_by: 2 }}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
+                      {% when 'linkedin' %}
+                        <svg xmlns="http://www.w3.org/2000/svg" width="{{ block.settings.social_icon_size | divided_by: 2 }}" height="{{ block.settings.social_icon_size | divided_by: 2 }}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path><rect x="2" y="9" width="4" height="12"></rect><circle cx="4" cy="4" r="2"></circle></svg>
+                    {% endcase %}
+                  </a>
+                {% endif %}
+                
+                {% if block.settings.social_link_3 != blank %}
+                  <a href="{{ block.settings.social_link_3 }}" class="social-icon {{ block.settings.social_icon_3 }}" target="_blank" aria-label="{{ block.settings.social_icon_3 }}" style="width: {{ block.settings.social_icon_size }}px; height: {{ block.settings.social_icon_size }}px;">
+                    {% case block.settings.social_icon_3 %}
+                      {% when 'facebook' %}
+                        <svg xmlns="http://www.w3.org/2000/svg" width="{{ block.settings.social_icon_size | divided_by: 2 }}" height="{{ block.settings.social_icon_size | divided_by: 2 }}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path></svg>
+                      {% when 'twitter' %}
+                        <svg xmlns="http://www.w3.org/2000/svg" width="{{ block.settings.social_icon_size | divided_by: 2 }}" height="{{ block.settings.social_icon_size | divided_by: 2 }}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z"></path></svg>
+                      {% when 'instagram' %}
+                        <svg xmlns="http://www.w3.org/2000/svg" width="{{ block.settings.social_icon_size | divided_by: 2 }}" height="{{ block.settings.social_icon_size | divided_by: 2 }}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
+                      {% when 'linkedin' %}
+                        <svg xmlns="http://www.w3.org/2000/svg" width="{{ block.settings.social_icon_size | divided_by: 2 }}" height="{{ block.settings.social_icon_size | divided_by: 2 }}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path><rect x="2" y="9" width="4" height="12"></rect><circle cx="4" cy="4" r="2"></circle></svg>
+                    {% endcase %}
+                  </a>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+        </div>
+      {% endif %}
+    {% endfor %}
+  </div>
+</div>
+
+{% stylesheet %}
+.expandable-section-wrapper {
+  width: 100%;
+  position: relative;
+  overflow: hidden;
+}
+
+.expandable-section-title {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.expandable-container {
+  display: flex;
+  flex-wrap: nowrap;
+  height: 100%;
+  width: 100%;
+}
+
+/* Column styles */
+.expandable-column {
+  flex: 1;
+  height: 100%;
+  overflow: hidden;
+  position: relative;
+  transition-property: flex;
+  /* Default transition - will be overridden by JS */
+  transition-duration: 0.3s;
+  transition-timing-function: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  will-change: transform;
+  min-width: 5%; /* Prevent columns from disappearing */
+}
+
+.column-inner {
+  position: relative;
+  background-size: cover;
+  background-position: center center;
+  height: 100%;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1;
+  /* Fix the gradient by ensuring it's properly formatted */
+  background: linear-gradient(to bottom, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.4) 100%);
+}
+
+.content-wrapper {
+  position: relative;
+  z-index: 2;
+  width: 90%;
+  max-width: 400px;
+  text-align: center;
+  /* Start with some opacity */
+  opacity: 0;
+  transform: translateY(10px);
+  /* Default transition - will be overridden by JS */
+  transition: opacity 0.4s ease, transform 0.4s ease;
+  padding: 20px;
+  pointer-events: none; /* Prevent flickering on hover */
+}
+
+/* Expand column on hover */
+.expandable-column:hover {
+  transform: scale(1.05)
+}
+
+/* Show content on column hover with improved timing */
+.expandable-column:hover .content-wrapper {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.column-heading {
+  margin-bottom: 15px;
+  font-weight: 500;
+}
+
+.column-description {
+  margin-bottom: 20px;
+}
+
+.column-description p {
+  margin: 0;
+}
+
+.social-icons {
+  display: flex;
+  justify-content: center;
+  gap: 18px;
+  pointer-events: auto; /* Re-enable pointer events for links */
+}
+
+.social-icon {
+  border-radius: 50%;
+  background-color: rgba(255, 255, 255, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #333;
+  transition: background-color 0.2s ease-in-out, transform 0.2s ease-in-out;
+}
+
+.social-icon:hover {
+  background-color: rgba(255, 255, 255, 1);
+  transform: scale(1.1);
+}
+
+@media (max-width: 1024px) {
+  .content-wrapper {
+    width: 90%;
+  }
+}
+
+/* Mobile styles - improved for better display */
+@media (max-width: 767px) {
+  .expandable-container {
+    flex-direction: column;
+    height: auto;
+  }
+  
+  .expandable-section-wrapper {
+    height: auto !important;
+  }
+  
+  .expandable-column {
+    width: 100%;
+    height: 250px; /* Fixed height for each column on mobile */
+    flex: none; /* Remove flex behavior on mobile */
+    margin-bottom: 15px;
+  }
+  
+  .expandable-column:hover {
+    flex: none; /* Remove flex expansion on hover for mobile */
+    height: 250px; /* Keep the same height when hovered */
+  }
+  
+  /* Show content by default on mobile */
+  .content-wrapper {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+    padding: 15px;
+  }
+  
+  /* Adjust spacing for mobile */
+  .column-heading {
+    margin-bottom: 10px;
+  }
+  
+  .column-description {
+    margin-bottom: 15px;
+  }
+  
+  /* Ensure overlay is visible on mobile without requiring hover */
+  .overlay {
+    opacity: 0.7 !important; /* Force overlay opacity */
+  }
+}
+{% endstylesheet %}
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Get section elements
+  const sectionWrapper = document.querySelector('.expandable-section-wrapper');
+  const transitionSpeed = parseInt(sectionWrapper.getAttribute('data-transition-speed'));
+  const columns = document.querySelectorAll('.expandable-column');
+  const contents = document.querySelectorAll('.content-wrapper');
+  
+  // Apply correct transition speed to all elements
+  columns.forEach(column => {
+    column.style.transitionDuration = `${transitionSpeed / 1000}s`;
+  });
+  
+  contents.forEach(content => {
+    // Slightly longer transition for content to ensure it appears after column expands
+    content.style.transitionDuration = `${transitionSpeed / 1000}s`;
+    // Add a small delay to the content appearance
+    content.style.transitionDelay = `${transitionSpeed / 2000}s`;
+  });
+  
+  // Fix for overlay gradients not applying properly
+  const overlays = document.querySelectorAll('.overlay');
+  overlays.forEach(overlay => {
+    // Make sure inline styles are applied correctly
+    const style = overlay.getAttribute('style');
+    if (style && style.includes('linear-gradient')) {
+      // Force browser to recalculate the gradient
+      overlay.style.display = 'none';
+      setTimeout(() => {
+        overlay.style.display = 'block';
+      }, 10);
+    }
+  });
+  
+  // Fix for mobile responsiveness
+  function checkMobile() {
+    if (window.innerWidth <= 767) {
+      columns.forEach(column => {
+        // For mobile: make content visible without hover
+        const content = column.querySelector('.content-wrapper');
+        if (content) {
+          content.style.opacity = "1";
+          content.style.transform = "translateY(0)";
+          content.style.pointerEvents = "auto";
+        }
+      });
+    } else {
+      // Reset for desktop
+      columns.forEach(column => {
+        const content = column.querySelector('.content-wrapper');
+        if (content && !column.matches(':hover')) {
+          content.style.opacity = "";
+          content.style.transform = "";
+          content.style.pointerEvents = "";
+        }
+      });
+    }
+  }
+  
+  // Run on load and resize
+  checkMobile();
+  window.addEventListener('resize', checkMobile);
+});
+
+function checkMobile() {
+  requestAnimationFrame(() => {
+    if (window.innerWidth <= 767) {
+      columns.forEach(column => {
+        const content = column.querySelector('.content-wrapper');
+        if (content) {
+          content.style.opacity = "1";
+          content.style.transform = "translateY(0)";
+          content.style.pointerEvents = "auto";
+        }
+      });
+    }
+  });
+}
+
+</script>
