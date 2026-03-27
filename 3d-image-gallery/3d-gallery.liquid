@@ -1,1 +1,376 @@
+{% schema %}
+{
+  "name": "3D Gallery",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Gallery Settings"
+    },
+    {
+      "type": "range",
+      "id": "scroll_per_item",
+      "min": 300,
+      "max": 1000,
+      "step": 50,
+      "unit": "px",
+      "label": "Scroll Per Item",
+      "default": 500
+    },
+    {
+      "type": "range",
+      "id": "distance",
+      "min": 500,
+      "max": 2500,
+      "step": 100,
+      "unit": "px",
+      "label": "3D Distance",
+      "default": 1500
+    }
+  ],
+  "blocks": [
+    {
+      "type": "gallery_image",
+      "name": "Gallery Image",
+      "limit": 10,
+      "settings": [
+        {
+          "type": "image_picker",
+          "id": "image",
+          "label": "Image"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "3D Gallery",
+      "blocks": [
+        {
+          "type": "gallery_image"
+        },
+        {
+          "type": "gallery_image"
+        },
+        {
+          "type": "gallery_image"
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}
+{%- style -%}
+  .gallery-wrapper {
+    --smooth-scroll: true;
+    position: relative;
+  }
+  .gsap-gallery {
+    height: 100vh;
+    background: #000000;
+    width: 100%;
+    position: relative;
+    overflow: hidden;
+  }
+  .gallery-container {
+    position: relative;
+    height: 100vh;
+    width: 100%;
+  }
+  .mdw-image-gallery-bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    opacity: 0.6;
+  }
+  .mdw-image-gallery-bg img {
+    position: absolute;
+    left: 0;
+    top: 0;
+    filter: blur(50px);
+    transform: scale(1.125);
+    max-width: unset;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0;
+    transition: opacity 0.5s ease;
+  }
+  .gsap-gallery-image {
+    height: 100vh;
+    width: 100%;
+    position: relative;
+    transform-style: preserve-3d;
+    perspective: 1000px;
+  }
+  .gsap-gallery .e-con {
+    position: absolute;
+    top: 50%;
+    left: 70%;
+    transform: translate(-50%, -50%) translateZ(0);
+    opacity: 0;
+    width: 460px;
+    height: 460px;
+    transition: transform 0.5s ease, opacity 0.5s ease;
+  }
+  .gsap-gallery .e-con:nth-child(even) {
+    left: 30%;
+  }
+  .gallery-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .gallery-container.is-fixed {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+  }
+  .gallery-container.is-bottom {
+    position: absolute;
+    bottom: 0;
+    top: auto;
+  }
+  @media (max-width: 1024px) {
+    .gsap-gallery .e-con {
+      left: 80%;
+    }
 
+    .gsap-gallery .e-con:nth-child(even) {
+      left: 20%;
+    }
+  }
+  @media (max-width: 768px) {
+    .gsap-gallery,
+    .gallery-container,
+    .gsap-gallery-image {
+      height: auto;
+    }
+
+    .gsap-gallery {
+      padding: 20px;
+    }
+
+    .gsap-gallery .e-con {
+      position: relative;
+      transform: none !important;
+      opacity: 1 !important;
+      margin: 0 auto 20px;
+      width: 100% !important;
+      max-width: 460px;
+      left: 0 !important;
+      top: 0;
+    }
+
+    .gsap-gallery .e-con:nth-child(even) {
+      left: 0 !important;
+    }
+
+    .gallery-container.is-fixed {
+      position: relative;
+    }
+  }
+{%- endstyle -%}
+<div class="gallery-wrapper">
+  <div
+    class="gsap-gallery"
+    data-scroll-per-item="{{ section.settings.scroll_per_item }}"
+    data-distance="{{ section.settings.distance }}"
+  >
+    <div class="gallery-container">
+      <div class="mdw-image-gallery-bg">
+        {%- for block in section.blocks -%}
+          {%- if block.settings.image -%}
+            {{ block.settings.image | image_url: width: 1920 | image_tag: loading: 'lazy', class: 'bg-image' }}
+          {%- endif -%}
+        {%- endfor -%}
+      </div>
+      <div class="gsap-gallery-image">
+        {%- for block in section.blocks -%}
+          {%- if block.settings.image -%}
+            <div class="e-con">
+              {{
+                block.settings.image
+                | image_url: width: 460
+                | image_tag: loading: 'lazy', width: 460, height: 460, class: 'gallery-image'
+              }}
+            </div>
+          {%- endif -%}
+        {%- endfor -%}
+      </div>
+    </div>
+  </div>
+</div>
+<script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://unpkg.com/lenis@1.1.11/dist/lenis.min.js"></script>
+<script>
+if (!window.MDWNonce113) {
+  window.MDWNonce113 = true;
+  
+  (function($) {
+    class GalleryController {
+      constructor() {
+        this.galleries = [];
+        this.init();
+      }
+      
+      init() {
+        $('.gsap-gallery').each((_, element) => {
+          this.galleries.push(new Gallery($(element)));
+        });
+        
+        if (this.shouldEnableSmoothScroll()) {
+          this.initSmoothScroll();
+        }
+        
+        this.bindEvents();
+      }
+      
+      shouldEnableSmoothScroll() {
+        return getComputedStyle(document.body).getPropertyValue('--smooth-scroll') === 'true'
+          && !this.isMobile()
+          && !this.isSafari();
+      }
+      
+      isMobile() {
+        return $(window).width() < 768;
+      }
+      
+      isSafari() {
+        return /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+      }
+      
+      initSmoothScroll() {
+        const lenis = new Lenis({
+          duration: 1.2,
+          easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+          orientation: 'vertical',
+          smoothWheel: true
+        });
+        
+        const raf = (time) => {
+          lenis.raf(time);
+          requestAnimationFrame(raf);
+        };
+        
+        requestAnimationFrame(raf);
+      }
+      
+      bindEvents() {
+        $(window).on('scroll resize', () => {
+          this.galleries.forEach(gallery => gallery.update());
+        });
+      }
+    }
+    
+    class Gallery {
+      constructor($element) {
+        this.$element = $element;
+        this.$container = $element.find('.gallery-container');
+        this.$images = $element.find('.e-con');
+        this.$backgrounds = $element.find('.mdw-image-gallery-bg img');
+        
+        this.options = {
+          scrollPerItem: parseInt($element.data('scroll-per-item')) || 500,
+          distance: parseInt($element.data('distance')) || 1500
+        };
+        
+        this.totalHeight = this.$images.length * this.options.scrollPerItem;
+        this.$element.height(this.totalHeight + window.innerHeight);
+        
+        this.initializePositions();
+      }
+      
+      initializePositions() {
+        this.$images.each((index, element) => {
+          const $image = $(element);
+          const initialZ = -index * this.options.distance;
+          
+          $image.css({
+            transform: `translate(-50%, -50%) translateZ(${initialZ}px)`,
+            zIndex: this.$images.length - index,
+            opacity: index === 0 ? 1 : 0
+          });
+          // Set initial background
+          if(index === 0) {
+            this.$backgrounds.eq(0).css('opacity', 1);
+          }
+        });
+      }
+      
+      update() {
+        if(this.isMobile()) return;
+        
+        const rect = this.$element[0].getBoundingClientRect();
+        const scrollProgress = (window.pageYOffset - this.$element.offset().top) / (this.$element.height() - window.innerHeight);
+        
+        this.updateFixedState(rect);
+        
+        if (scrollProgress >= 0 && scrollProgress <= 1) {
+          this.updateImagePositions(scrollProgress);
+          this.updateBackgrounds(scrollProgress);
+        }
+      }
+      
+      isMobile() {
+        return $(window).width() < 768;
+      }
+      
+      updateFixedState(rect) {
+        const shouldBeFixed = rect.top <= 0 && rect.bottom > window.innerHeight;
+        const shouldBeBottom = rect.bottom <= window.innerHeight;
+        
+        this.$container.toggleClass('is-fixed', shouldBeFixed && !shouldBeBottom);
+        this.$container.toggleClass('is-bottom', shouldBeBottom);
+      }
+      
+      updateImagePositions(progress) {
+        const totalMovement = this.options.distance * (this.$images.length - 1);
+        const currentMove = progress * totalMovement;
+        
+        this.$images.each((index, element) => {
+          const $image = $(element);
+          const initialZ = -index * this.options.distance;
+          const currentZ = initialZ + currentMove;
+          const opacity = this.calculateOpacity(currentZ);
+          
+          $image.css({
+            transform: `translate(-50%, -50%) translateZ(${currentZ}px)`,
+            opacity: opacity
+          });
+        });
+      }
+      
+      updateBackgrounds(progress) {
+        const totalImages = this.$images.length;
+        const activeIndex = Math.floor(progress * (totalImages - 1));
+        
+        this.$backgrounds.each((index, element) => {
+          const $bg = $(element);
+          const opacity = index === activeIndex ? 1 : 0;
+          
+          if($bg.css('opacity') !== opacity) {
+            $bg.css('opacity', opacity);
+          }
+        });
+      }
+      
+      calculateOpacity(z) {
+        const visibleRange = 1000;
+        const opacity = 1 - Math.abs(z) / visibleRange;
+        return Math.max(0, Math.min(1, opacity));
+      }
+    }
+    
+    // Initialize galleries when document is ready
+    $(document).ready(() => {
+      new GalleryController();
+    });
+    
+  })(jQuery);
+}
+</script>
