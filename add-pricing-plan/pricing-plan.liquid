@@ -1,1 +1,960 @@
 
+{%- style -%}
+  #shopify-section-{{ section.id }} {
+    padding-top: {{ section.settings.padding_top }}px;
+    padding-bottom: {{ section.settings.padding_bottom }}px;
+    background-color: {{ section.settings.background_color }};
+  }
+
+  .pricing-table-{{ section.id }} {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 15px;
+  }
+
+  .section-logo-{{ section.id }} {
+    text-align: {{ section.settings.heading_alignment }};
+    display: flex;
+    justify-content: center;
+    margin-bottom: 20px;
+  }
+
+  .section-logo-{{ section.id }} img {
+    max-width: {{ section.settings.logo_width }}px;
+    height: auto;
+  }
+
+  .pricing-table-header-{{ section.id }} {
+    text-align: {{ section.settings.heading_alignment }};
+    margin-bottom: 15px;
+  }
+
+  .pricing-table-header-{{ section.id }} .section-heading {
+    font-size: {% case section.settings.heading_size %}
+      {% when 'small' %}20px
+      {% when 'medium' %}28px
+      {% when 'large' %}36px
+    {% endcase %};
+    margin-bottom: 10px;
+  }
+
+  .section-subtitle-{{ section.id }} {
+    text-align: {{ section.settings.heading_alignment }};
+    font-size: {% case section.settings.subtitle_size %}
+      {% when 'small' %}14px
+      {% when 'medium' %}18px
+      {% when 'large' %}22px
+    {% endcase %};
+    color: {{ section.settings.subtitle_color }};
+    margin-bottom: 30px;
+  }
+
+  .pricing-plans-{{ section.id }} {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    justify-content: center;
+  }
+  
+  .monthly-plans,
+  .yearly-plans {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    width: 100%;
+    justify-content: center;
+  }
+
+  .pricing-plan-{{ section.id }} {
+    flex: 1;
+    min-width: 280px;
+    max-width: 350px;
+    padding: 30px;
+    border-radius: 8px;
+    background: #fff;
+    position: relative;
+    {% if section.settings.enable_shadow %}
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    {% endif %}
+    transition: transform 0.3s ease;
+  }
+
+  .pricing-plan-{{ section.id }}:hover {
+    transform: translateY(-5px);
+  }
+
+  /* Popular Plan Highlight Styles */
+  .pricing-plan-{{ section.id }}.popular-plan {
+    border: 2px solid {{ section.settings.popular_border_color }};
+    background-color: {{ section.settings.popular_background_color }};
+    transform: scale(1.03);
+    z-index: 2;
+  }
+
+  .pricing-plan-{{ section.id }}.popular-plan:hover {
+    transform: scale(1.05) translateY(-5px);
+  }
+
+  .popular-badge-{{ section.id }} {
+    position: absolute;
+    top: -12px;
+    right: 20px;
+    background: {{ section.settings.popular_badge_color }};
+    color: white;
+    padding: 5px 15px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 600;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  }
+
+  .plan-price-{{ section.id }} {
+    font-size: 36px;
+    font-weight: 700;
+    margin-bottom: 10px;
+    color: {{ section.settings.price_color }};
+  }
+
+  .plan-subheading-{{ section.id }} {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 15px;
+    color: {{ section.settings.subheading_color }};
+  }
+
+  .plan-description-{{ section.id }} {
+    margin-bottom: 20px;
+    color: {{ section.settings.description_color }};
+  }
+
+  .plan-button-{{ section.id }} {
+    display: inline-block;
+    padding: 12px 24px;
+    background: {{ section.settings.button_color }};
+    color: {{ section.settings.button_text_color }};
+    border-radius: 4px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: background 0.3s ease;
+  }
+
+  .plan-button-{{ section.id }}:hover {
+    background: {{ section.settings.button_hover_color }};
+  }
+
+  .plan-toggle-{{ section.id }} {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 30px;
+  }
+
+  .toggle-switch-{{ section.id }} {
+    position: relative;
+    display: inline-block;
+    width: 200px;
+    height: 44px;
+  }
+
+  .toggle-switch-{{ section.id }} input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+
+  .toggle-slider-{{ section.id }} {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #f5f5f5;
+    transition: .4s;
+    border-radius: 34px;
+  }
+
+  .toggle-slider-{{ section.id }}:before {
+    position: absolute;
+    content: "";
+    height: 36px;
+    width: 96px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    transition: .4s;
+    border-radius: 34px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  }
+
+  .toggle-switch-{{ section.id }} input:checked + .toggle-slider-{{ section.id }}:before {
+    transform: translateX(96px);
+  }
+
+  .toggle-labels-{{ section.id }} {
+    position: absolute;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    font-weight: 600;
+    pointer-events: none;
+  }
+
+  /* Plan Comparison Styles */
+  .comparison-trigger-{{ section.id }} {
+    text-align: center;
+    margin: 30px 0;
+  }
+
+  .comparison-button-{{ section.id }} {
+    display: inline-block;
+    padding: 10px 20px;
+    background: {{ section.settings.comparison_button_color }};
+    color: {{ section.settings.comparison_button_text_color }};
+    border-radius: 4px;
+    text-decoration: none;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.3s ease;
+  }
+
+  .comparison-button-{{ section.id }}:hover {
+    background: {{ section.settings.button_hover_color }};
+  }
+
+  .plan-comparison-table-{{ section.id }} {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    display: none;
+    background: white;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  }
+
+  .plan-comparison-table-{{ section.id }} th,
+  .plan-comparison-table-{{ section.id }} td {
+    padding: 15px;
+    text-align: center;
+    border: 1px solid #eee;
+  }
+
+  .plan-comparison-table-{{ section.id }} th {
+    background-color: {{ section.settings.table_header_color }};
+    color: {{ section.settings.table_header_text_color }};
+  }
+
+  .plan-comparison-table-{{ section.id }} tr:nth-child(even) {
+    background-color: #f9f9f9;
+  }
+
+  .feature-name {
+    text-align: left;
+    font-weight: 500;
+  }
+
+  .plan-comparison-table-{{ section.id }} .feature-available {
+    color: #10b981;
+    font-size: 20px;
+  }
+
+  .plan-comparison-table-{{ section.id }} .feature-unavailable {
+    color: #ef4444;
+    font-size: 20px;
+  }
+
+  @media (max-width: 767px) {
+    .pricing-plan-{{ section.id }} {
+      flex: auto;
+      width: 100%;
+      max-width: 100%;
+      margin-bottom: 15px;
+    }
+    
+    .monthly-plans,
+    .yearly-plans {
+      flex-direction: column;
+      align-items: center;
+    }
+    
+    #shopify-section-{{ section.id }} {
+      padding-top: {{ section.settings.padding_top_mobile }}px;
+      padding-bottom: {{ section.settings.padding_bottom_mobile }}px;
+    }
+    
+    .section-logo-{{ section.id }} img {
+      max-width: {{ section.settings.logo_width_mobile }}px;
+    }
+
+    .plan-comparison-table-{{ section.id }} {
+      font-size: 14px;
+      overflow-x: auto;
+      display: block;
+    }
+    
+    .plan-comparison-table-{{ section.id }} table {
+      width: 100%;
+      min-width: 500px;
+    }
+    
+    .toggle-switch-{{ section.id }} {
+      width: 180px;
+    }
+    
+    .toggle-slider-{{ section.id }}:before {
+      width: 86px;
+    }
+    
+    .toggle-switch-{{ section.id }} input:checked + .toggle-slider-{{ section.id }}:before {
+      transform: translateX(86px);
+    }
+  }
+
+  .plan-comparison-table-{{ section.id }} {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+  display: none;
+  background: white;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  table-layout: fixed; /* Add this */
+}
+
+.plan-comparison-table-{{ section.id }} table {
+  width: 100%; /* Add this */
+}
+
+/* Update the mobile CSS to prevent horizontal scrolling */
+@media (max-width: 767px) {
+  .plan-comparison-table-{{ section.id }} {
+    font-size: 14px;
+    display: block;
+    width: 100%;
+    overflow-x: auto;
+  }
+  
+  .plan-comparison-table-{{ section.id }} table {
+    width: 100%;
+    min-width: 500px;
+  }
+}
+{%- endstyle -%}
+
+<div class="pricing-table-{{ section.id }}">
+  {%- if section.settings.logo != blank -%}
+    <div class="section-logo-{{ section.id }}">
+      <img src="{{ section.settings.logo | img_url: '800x' }}" 
+           alt="{{ section.settings.logo.alt | escape }}" 
+           loading="lazy">
+    </div>
+  {%- endif -%}
+
+  {%- if section.settings.heading != blank -%}
+    <div class="pricing-table-header-{{ section.id }}">
+      <h2 class="section-heading">{{ section.settings.heading }}</h2>
+    </div>
+  {%- endif -%}
+
+  {%- if section.settings.subtitle != blank -%}
+    <div class="section-subtitle-{{ section.id }}">
+      {{ section.settings.subtitle }}
+    </div>
+  {%- endif -%}
+
+  <div class="plan-toggle-{{ section.id }}">
+    <label class="toggle-switch-{{ section.id }}">
+      <input type="checkbox" id="plan-toggle-{{ section.id }}">
+      <span class="toggle-slider-{{ section.id }}"></span>
+      <div class="toggle-labels-{{ section.id }}">
+        <span>Monthly</span>
+        <span>Yearly</span>
+      </div>
+    </label>
+  </div>
+
+  <div class="pricing-plans-{{ section.id }}">
+    <!-- Monthly Plans -->
+    <div class="monthly-plans">
+      {%- for block in section.blocks -%}
+        {%- if block.type == 'monthly_plan' -%}
+          <div class="pricing-plan-{{ section.id }} {% if block.settings.is_popular %}popular-plan{% endif %}" data-plan-type="monthly">
+            {% if block.settings.is_popular %}
+              <span class="popular-badge-{{ section.id }}">{{ block.settings.popular_text }}</span>
+            {% endif %}
+            <h3 class="plan-price-{{ section.id }}">{{ block.settings.price }}</h3>
+            <h4 class="plan-subheading-{{ section.id }}">{{ block.settings.subheading }}</h4>
+            <div class="plan-description-{{ section.id }}">{{ block.settings.description }}</div>
+            <a href="{{ block.settings.product.url }}" class="plan-button-{{ section.id }}">{{ block.settings.button_text }}</a>
+          </div>
+        {%- endif -%}
+      {%- endfor -%}
+    </div>
+
+    <!-- Yearly Plans -->
+    <div class="yearly-plans" style="display: none;">
+      {%- for block in section.blocks -%}
+        {%- if block.type == 'yearly_plan' -%}
+          <div class="pricing-plan-{{ section.id }} {% if block.settings.is_popular %}popular-plan{% endif %}" data-plan-type="yearly">
+            {% if block.settings.is_popular %}
+              <span class="popular-badge-{{ section.id }}">{{ block.settings.popular_text }}</span>
+            {% endif %}
+            <h3 class="plan-price-{{ section.id }}">{{ block.settings.price }}</h3>
+            <h4 class="plan-subheading-{{ section.id }}">{{ block.settings.subheading }}</h4>
+            <div class="plan-description-{{ section.id }}">{{ block.settings.description }}</div>
+            <a href="{{ block.settings.product.url }}" class="plan-button-{{ section.id }}">{{ block.settings.button_text }}</a>
+          </div>
+        {%- endif -%}
+      {%- endfor -%}
+    </div>
+  </div>
+
+  {% if section.settings.enable_comparison %}
+    <div class="comparison-trigger-{{ section.id }}">
+      <button class="comparison-button-{{ section.id }}" id="comparison-button-{{ section.id }}">
+        {{ section.settings.comparison_button_text }}
+      </button>
+    </div>
+
+    <div class="plan-comparison-table-{{ section.id }}" id="plan-comparison-{{ section.id }}">
+  <table width="100%">
+    <thead>
+      <tr>
+        <th class="feature-column">Features</th>
+        {% for block in section.blocks %}
+          {% if block.type == 'monthly_plan' %}
+            <th data-plan-type="monthly">{{ block.settings.subheading }}</th>
+          {% endif %}
+        {% endfor %}
+      </tr>
+    </thead>
+    <tbody>
+      {% for feature_block in section.blocks %}
+        {% if feature_block.type == 'feature_comparison' %}
+          <tr>
+            <td class="feature-name">{{ feature_block.settings.feature_name }}</td>
+            {% for plan_block in section.blocks %}
+              {% if plan_block.type == 'monthly_plan' %}
+                <td data-plan-type="monthly">
+                  {% assign feature_key = 'plan_' | append: forloop.index %}
+                  {% if feature_block.settings[feature_key] %}
+                    <span class="feature-available">&#10004;</span>
+                  {% else %}
+                    <span class="feature-unavailable">&#10008;</span>
+                  {% endif %}
+                </td>
+              {% endif %}
+            {% endfor %}
+          </tr>
+        {% endif %}
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+  {% endif %}
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const toggle = document.getElementById('plan-toggle-{{ section.id }}');
+  const monthlyPlans = document.querySelector('#shopify-section-{{ section.id }} .monthly-plans');
+  const yearlyPlans = document.querySelector('#shopify-section-{{ section.id }} .yearly-plans');
+  
+  toggle.addEventListener('change', function() {
+    if (this.checked) {
+      monthlyPlans.style.display = 'none';
+      yearlyPlans.style.display = 'flex';
+    } else {
+      monthlyPlans.style.display = 'flex';
+      yearlyPlans.style.display = 'none';
+    }
+  });
+
+  {% if section.settings.enable_comparison %}
+    const comparisonButton = document.getElementById('comparison-button-{{ section.id }}');
+    const comparisonTable = document.getElementById('plan-comparison-{{ section.id }}');
+    
+    comparisonButton.addEventListener('click', function() {
+      if (comparisonTable.style.display === 'block') {
+        comparisonTable.style.display = 'none';
+        comparisonButton.textContent = '{{ section.settings.comparison_button_text }}';
+      } else {
+        comparisonTable.style.display = 'block';
+        comparisonButton.textContent = '{{ section.settings.comparison_hide_text }}';
+      }
+    });
+  {% endif %}
+});
+</script>
+
+{% schema %}
+{
+  "name": "Pricing Table",
+  "tag": "section",
+  "class": "section",
+  "settings": [
+    {
+      "type": "image_picker",
+      "id": "logo",
+      "label": "Section logo",
+      "info": "Recommended size: 200x100px"
+    },
+    {
+      "type": "range",
+      "id": "logo_width",
+      "min": 50,
+      "max": 300,
+      "step": 10,
+      "unit": "px",
+      "label": "Logo width (desktop)",
+      "default": 200
+    },
+    {
+      "type": "range",
+      "id": "logo_width_mobile",
+      "min": 50,
+      "max": 200,
+      "step": 10,
+      "unit": "px",
+      "label": "Logo width (mobile)",
+      "default": 150
+    },
+    {
+      "type": "richtext",
+      "id": "heading",
+      "label": "Section heading",
+      "default": "<p>Choose Your Plan</p>"
+    },
+    {
+      "type": "select",
+      "id": "heading_size",
+      "label": "Heading size",
+      "options": [
+        {
+          "value": "small",
+          "label": "Small"
+        },
+        {
+          "value": "medium",
+          "label": "Medium"
+        },
+        {
+          "value": "large",
+          "label": "Large"
+        }
+      ],
+      "default": "medium"
+    },
+    {
+      "type": "richtext",
+      "id": "subtitle",
+      "label": "Subtitle",
+      "default": "<p>Select the plan that works best for you</p>"
+    },
+    {
+      "type": "select",
+      "id": "subtitle_size",
+      "label": "Subtitle size",
+      "options": [
+        {
+          "value": "small",
+          "label": "Small"
+        },
+        {
+          "value": "medium",
+          "label": "Medium"
+        },
+        {
+          "value": "large",
+          "label": "Large"
+        }
+      ],
+      "default": "medium"
+    },
+    {
+      "type": "color",
+      "id": "subtitle_color",
+      "label": "Subtitle color",
+      "default": "#666666"
+    },
+    {
+      "type": "select",
+      "id": "heading_alignment",
+      "label": "Heading alignment",
+      "options": [
+        {
+          "value": "left",
+          "label": "Left"
+        },
+        {
+          "value": "center",
+          "label": "Center"
+        },
+        {
+          "value": "right",
+          "label": "Right"
+        }
+      ],
+      "default": "center"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_shadow",
+      "label": "Enable card shadow",
+      "default": true
+    },
+    {
+      "type": "color",
+      "id": "background_color",
+      "label": "Background color",
+      "default": "#f9f9f9"
+    },
+    {
+      "type": "color",
+      "id": "price_color",
+      "label": "Price color",
+      "default": "#000000"
+    },
+    {
+      "type": "color",
+      "id": "subheading_color",
+      "label": "Subheading color",
+      "default": "#333333"
+    },
+    {
+      "type": "color",
+      "id": "description_color",
+      "label": "Description color",
+      "default": "#666666"
+    },
+    {
+      "type": "color",
+      "id": "button_color",
+      "label": "Button color",
+      "default": "#2563eb"
+    },
+    {
+      "type": "color",
+      "id": "button_text_color",
+      "label": "Button text color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "button_hover_color",
+      "label": "Button hover color",
+      "default": "#1d4ed8"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "label": "Padding top",
+      "default": 36
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "label": "Padding bottom",
+      "default": 36
+    },
+    {
+      "type": "range",
+      "id": "padding_top_mobile",
+      "min": 0,
+      "max": 100,
+      "step": 2,
+      "unit": "px",
+      "label": "Padding top (mobile)",
+      "default": 24
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom_mobile",
+      "min": 0,
+      "max": 100,
+      "step": 2,
+      "unit": "px",
+      "label": "Padding bottom (mobile)",
+      "default": 24
+    },
+    {
+      "type": "header",
+      "content": "Popular Plan Settings"
+    },
+    {
+      "type": "color",
+      "id": "popular_border_color",
+      "label": "Popular plan border color",
+      "default": "#3b82f6"
+    },
+    {
+      "type": "color",
+      "id": "popular_background_color",
+      "label": "Popular plan background color",
+      "default": "#f0f7ff"
+    },
+    {
+      "type": "color",
+      "id": "popular_badge_color",
+      "label": "Popular badge color",
+      "default": "#3b82f6"
+    },
+    {
+      "type": "header",
+      "content": "Comparison Table Settings"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_comparison",
+      "label": "Enable comparison table",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "comparison_button_text",
+      "label": "Comparison button text",
+      "default": "Compare Plans"
+    },
+    {
+      "type": "text",
+      "id": "comparison_hide_text",
+      "label": "Hide comparison text",
+      "default": "Hide Comparison"
+    },
+    {
+      "type": "color",
+      "id": "comparison_button_color",
+      "label": "Comparison button color",
+      "default": "#6b7280"
+    },
+    {
+      "type": "color",
+      "id": "comparison_button_text_color",
+      "label": "Comparison button text color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "table_header_color",
+      "label": "Table header background color",
+      "default": "#f3f4f6"
+    },
+    {
+      "type": "color",
+      "id": "table_header_text_color",
+      "label": "Table header text color",
+      "default": "#1f2937"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "monthly_plan",
+      "name": "Monthly plan",
+      "limit": 3,
+      "settings": [
+        {
+          "type": "text",
+          "id": "price",
+          "label": "Price",
+          "default": "$19/month"
+        },
+        {
+          "type": "text",
+          "id": "subheading",
+          "label": "Subheading",
+          "default": "First Plan"
+        },
+        {
+          "type": "richtext",
+          "id": "description",
+          "label": "Description",
+          "default": "<p>Perfect for individuals getting started</p><ul><li>Feature 1</li><li>Feature 2</li><li>Feature 3</li></ul>"
+        },
+        {
+          "type": "text",
+          "id": "button_text",
+          "label": "Button text",
+          "default": "Get Started"
+        },
+        {
+          "type": "product",
+          "id": "product",
+          "label": "Linked product"
+        },
+        {
+          "type": "checkbox",
+          "id": "is_popular",
+          "label": "Mark as popular/recommended",
+          "default": false
+        },
+        {
+          "type": "text",
+          "id": "popular_text",
+          "label": "Popular badge text",
+          "default": "MOST POPULAR"
+        }
+      ]
+    },
+    {
+      "type": "yearly_plan",
+      "name": "Yearly plan",
+      "limit": 3,
+      "settings": [
+        {
+          "type": "text",
+          "id": "price",
+          "label": "Price",
+          "default": "$179/year"
+        },
+        {
+          "type": "text",
+          "id": "subheading",
+          "label": "Subheading",
+          "default": "Pro Plan"
+        },
+        {
+          "type": "richtext",
+          "id": "description",
+          "label": "Description",
+          "default": "<p>Best value for long-term commitment</p><ul><li>All Basic features</li><li>Priority support</li><li>Exclusive content</li></ul>"
+        },
+        {
+          "type": "text",
+          "id": "button_text",
+          "label": "Button text",
+          "default": "Get Started"
+        },
+        {
+          "type": "product",
+          "id": "product",
+          "label": "Linked product"
+        },
+        {
+          "type": "checkbox",
+          "id": "is_popular",
+          "label": "Mark as popular/recommended",
+          "default": false
+        },
+        {
+          "type": "text",
+          "id": "popular_text",
+          "label": "Popular badge text",
+          "default": "BEST VALUE"
+        }
+      ]
+    },
+    {
+      "type": "feature_comparison",
+      "name": "Feature comparison row",
+      "settings": [
+        {
+          "type": "text",
+          "id": "feature_name",
+          "label": "Feature name",
+          "default": "Feature name"
+        },
+        {
+          "type": "checkbox",
+          "id": "plan_1",
+          "label": "Available in first plan",
+          "default": true
+        },
+        {
+          "type": "checkbox",
+          "id": "plan_2",
+          "label": "Available in second plan",
+          "default": true
+        },
+        {
+          "type": "checkbox",
+          "id": "plan_3",
+          "label": "Available in third plan",
+          "default": true
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Pricing Table",
+      "blocks": [
+        {
+          "type": "monthly_plan"
+        },
+        {
+          "type": "monthly_plan",
+          "settings": {
+            "is_popular": true,
+            "subheading": "Pro Plan",
+            "price": "$49/month"
+          }
+        },
+        {
+          "type": "monthly_plan",
+          "settings": {
+            "subheading": "Enterprise Plan",
+            "price": "$99/month"
+          }
+        },
+        {
+          "type": "yearly_plan"
+        },
+        {
+          "type": "yearly_plan",
+          "settings": {
+            "is_popular": true,
+            "subheading": "Pro Plan",
+            "price": "$470/year"
+          }
+        },
+        {
+          "type": "yearly_plan",
+          "settings": {
+            "subheading": "Enterprise Plan",
+            "price": "$950/year"
+          }
+        },
+        {
+          "type": "feature_comparison",
+          "settings": {
+            "feature_name": "Basic Features",
+            "plan_1": true,
+            "plan_2": true,
+            "plan_3": true
+          }
+        },
+        {
+          "type": "feature_comparison",
+          "settings": {
+            "feature_name": "Advanced Features",
+            "plan_1": false,
+            "plan_2": true,
+            "plan_3": true
+          }
+        },
+        {
+          "type": "feature_comparison",
+          "settings": {
+            "feature_name": "Premium Support",
+            "plan_1": false,
+            "plan_2": false,
+            "plan_3": true
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}
