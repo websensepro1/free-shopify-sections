@@ -1,1 +1,48 @@
+<style>
+.shopify-payment-button__button.shopify-payment-button__button--unbranded {
+  background-color: black !important; 
+  color: white !important; 
+  box-shadow: none; 
+  position: relative; 
+  z-index: 1; 
+  overflow: hidden; 
+}  
 
+.shopify-payment-button__button.shopify-payment-button__button--unbranded::before,
+.shopify-payment-button__button.shopify-payment-button__button--unbranded::after,
+.shopify-payment-button__button.shopify-payment-button__button--unbranded:hover {
+  box-shadow: none !important; 
+}  
+
+.shopify-payment-button__button.shopify-payment-button__button--unbranded:hover {
+  transform: none !important; 
+  transition: none !important; 
+}  
+
+@keyframes shine { 
+  to {
+    left: 100%; 
+  }
+}  
+
+.shopify-payment-button__button.shopify-payment-button__button--unbranded::after { 
+  z-index: -1 !important; 
+  position: absolute; 
+  top: 0 !important; 
+  left: -100%; 
+  width: 100% !important; 
+  height: 100% !important; 
+  transform: skew(-15deg) !important; 
+  --border-opacity: none; 
+  background-image: linear-gradient( 
+    90deg, 
+    transparent, 
+    rgba(255, 255, 255, 0.25), 
+    transparent 
+  ) !important; 
+}  
+
+.shopify-payment-button__button.shopify-payment-button__button--unbranded:hover::after {
+  animation: shine 2s ease; 
+}
+</style>
