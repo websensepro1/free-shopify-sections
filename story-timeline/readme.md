@@ -1,58 +1,49 @@
-# Add Story Timeline Section in Shopify - No Code - Free Section
+# Story Timeline Section
 
-[![Custom Font in Shopify](https://img.youtube.com/vi/7T8q1UEuzpM/0.jpg)](https://www.youtube.com/watch?v=7T8q1UEuzpM)
+Add a Story Timeline section to your Shopify store — a lightweight, fully responsive vertical timeline built with pure Liquid, HTML, and CSS that requires no coding and no expensive monthly apps.
 
+## Overview
 
+The Story Timeline section lets you display your brand history, product evolution, roadmap, or process steps in a visually engaging vertical timeline layout. Building trust with customers is essential for e-commerce conversion, and a well-crafted timeline helps create emotional connections and transparency about your brand's journey.
 
-Blog: https://websensepro.com/blog/story-timeline-in-shopify-without-app-free/
+## Features
 
+- Vertical timeline layout built with pure Liquid, HTML, and CSS
+- No paid app required — completely free
+- Compatible with Shopify Online Store 2.0 themes (Dawn, Sense, Craft, etc.)
+- Fully responsive for mobile and desktop
+- Add unlimited timeline event blocks
+- Each block supports a date, title, and description
+- Easy installation with a single Liquid file
+- Configurable via the Shopify theme customizer
 
-A lightweight, fully responsive **Story Timeline Shopify** section built with pure Liquid, HTML, and CSS. This repository allows developers and merchants to add a stunning vertical timeline to their store to showcase brand history, product roadmaps, or shipping processes without the need for expensive monthly apps.
+## Video Tutorial
 
+[![Add Story Timeline Section in Shopify](https://img.youtube.com/vi/7T8q1UEuzpM/0.jpg)](https://www.youtube.com/watch?v=7T8q1UEuzpM)
+> Click the image above to watch the full step-by-step tutorial.
 
-## 🚀 Why Use a Story Timeline on Shopify?
+## Getting Started
 
-Building trust with your customers is essential for e-commerce conversion. A **Story Timeline Shopify** section allows you to:
+1. Navigate to the `sections/` folder in this repository and copy the `story-timeline.liquid` code
+2. In your Shopify admin, go to **Online Store → Themes → Edit Code**
+3. Under the **Sections** folder, click **Add a new section** and name it `story-timeline`
+4. Paste the copied code and click **Save**
+5. Go to the **Theme Editor (Customize)**, navigate to the page where you want the timeline, click **Add Section**, and search for **Story Timeline**
+6. Add your timeline event blocks and save
 
-1.  **Showcase Brand History:** Visually display your store's origin story, building emotional connections.
-2.  **Display Product Evolution:** Show how your product has improved over the years.
-3.  **Visual Roadmaps:** Let customers know what is coming next.
-4.  **Process Explanation:** Use the timeline layout to explain "How it Works" (e.g., Order > Make > Ship).
+## Customization
 
-## 🛠 Installation Guide
+- **Timeline events:** Add, remove, or reorder event blocks via the theme customizer
+- **Date:** Display a year, month, or custom date label per event
+- **Title & description:** Set the headline and body copy for each milestone
+- **Icons or images:** Optionally add visuals to each timeline node
+- **Color scheme:** Adjust line, node, and text colors to match your brand
 
-Follow these steps to install the **Story Timeline Shopify** section into your theme.
+## Resources
 
-### Step 1: Copy the Code
-Navigate to the `sections/` folder in this repository and open `story-timeline.liquid`. Copy the entire code content.
+- [Blog: Story Timeline in Shopify Without App](https://websensepro.com/blog/story-timeline-in-shopify-without-app-free/)
+- [Shopify Theme Development Docs](https://shopify.dev/docs/themes)
+- [Liquid Template Language Reference](https://shopify.dev/docs/api/liquid)
 
-### Step 2: Create the Section in Shopify
-1.  Go to your Shopify Admin > **Online Store** > **Themes**.
-2.  Click **Actions** (three dots) > **Edit Code**.
-3.  Scroll down to the **Sections** folder and click **"Add a new section"**.
-4.  Name the file `story-timeline`.
-5.  Paste the code you copied in Step 1 and click **Save**.
-
-### Step 3: Add to Theme
-1.  Go to the **Theme Editor** (Customize).
-2.  Navigate to the page where you want the timeline to appear (e.g., About Us).
-3.  Click **Add Section** and search for **"Story Timeline"**.
-4.  Drag and drop the block to your desired location.
-
-## 📱 Compatibility
-
-This **Story Timeline Shopify** solution is tested on:
-*   **Shopify Online Store 2.0 Themes** (Dawn, Sense, Craft, etc.)
-
-## 🤝 Contributing
-
-Improvements are welcome! If you want to optimize the **Story Timeline Shopify** code further:
-
-1.  Fork the Project
-2.  Create your Feature Branch (`git checkout -b feature/NewTimelineStyle`)
-3.  Commit your Changes (`git commit -m 'Add new animation'` )
-4.  Push to the Branch (`git push origin feature/NewTimelineStyle`)
-5.  Open a Pull Request
-
-
-*Keywords: Story Timeline Shopify, Shopify Timeline Section, Shopify Brand History, Vertical Timeline Liquid, Shopify Sections, Shopify UI Kit.*
+---
+*Part of the [Free Shopify Sections](https://github.com/websensepro1/free-shopify-sections) collection.*
