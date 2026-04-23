@@ -23,6 +23,7 @@ A collection of free, high-quality, and customizable Shopify sections to enhance
 | [Animated Team Section](./animated-team-section) | Introduce team members with a stylish animated expandable grid |
 | [Autoplay Video Section](./autoplay-video-section) | Instantly embed an engaging autoplay video section |
 | [Before & After Slider](./before-and-after-slider) | Interactive before/after image comparison slider — pure Liquid & CSS |
+| [Breadcrumbs](./breadcrumbs) | Fully customizable breadcrumb navigation for product, collection, and article pages with 8 delimiter styles |
 | [Circle Menu](./circle-menu) | Icon-based circular navigation menu for any storefront |
 | [Collection Carousel Slider](./collection-carousel-slider-section) | Smooth, scrollable carousel to display your collections |
 | [Coming Soon / Password Page](./coming-soon-or-password-page) | Compelling pre-launch landing page with countdown support |
