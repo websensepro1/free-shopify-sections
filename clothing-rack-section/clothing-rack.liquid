@@ -1,0 +1,1341 @@
+{% comment %}
+  Clothing Rack Section — wearebrand.io style
+  sections/clothing-rack.liquid
+{% endcomment %}
+
+{%- assign sl_mode  = section.settings.slider_mode -%}
+{%- assign sl_speed = section.settings.auto_speed | times: 1000 -%}
+
+<section class="cr-sec" id="cr-{{ section.id }}"
+  data-slider="{{ sl_mode }}"
+  data-auto-speed="{{ sl_speed }}"
+  style="
+    --cr-bg:      {{ section.settings.bg_color }};
+    --cr-txt:     {{ section.settings.text_color }};
+    --cr-rod:     {{ section.settings.rod_color }};
+    --cr-hng:     {{ section.settings.hanger_color }};
+    --cr-tag-bg:  {{ section.settings.tag_bg_color }};
+    --cr-spd:     {{ section.settings.hover_speed }}ms;
+    --cr-h-desk:  {{ section.settings.rack_height_desktop }}px;
+    --cr-h-mob:   {{ section.settings.rack_height_mobile }}px;
+  ">
+
+  {%- if section.settings.label_primary != blank or section.settings.label_secondary != blank -%}
+  <div class="cr-railcap">
+    {%- if section.settings.label_primary != blank -%}<span>{{ section.settings.label_primary }}</span>{%- endif -%}
+    {%- if section.settings.label_primary != blank and section.settings.label_secondary != blank -%}<span class="cr-railcap-sep"></span>{%- endif -%}
+    {%- if section.settings.label_secondary != blank -%}<span class="cr-railcap-dim">{{ section.settings.label_secondary }}</span>{%- endif -%}
+  </div>
+  {%- endif -%}
+
+  <!-- Slider wrapper (arrows + stage) -->
+  <div class="cr-slider-wrap">
+
+    {%- if sl_mode == 'manual' or sl_mode == 'auto' -%}
+    <button class="cr-sl-btn cr-sl-prev" id="crPrev-{{ section.id }}" aria-label="Previous">
+      <svg viewBox="0 0 24 24" fill="none"><polyline points="15 18 9 12 15 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+    {%- endif -%}
+
+    <div class="cr-stage" id="crStage-{{ section.id }}">
+      <div class="cr-rod" aria-hidden="true">
+        {%- if section.settings.rod_image != blank -%}
+          <img src="{{ section.settings.rod_image | image_url: width: 2000 }}" alt="" loading="eager" class="cr-rod-img">
+        {%- endif -%}
+      </div>
+
+      <div class="cr-rack" id="crRack-{{ section.id }}">
+        {%- for block in section.blocks -%}
+          {%- assign product = block.settings.product -%}
+          {%- if product != blank or block.settings.side_image != blank -%}
+
+            {%- assign side_img  = block.settings.side_image -%}
+            {%- assign front_img = block.settings.front_image | default: product.featured_image -%}
+            {%- assign back_img  = block.settings.back_image -%}
+            {%- assign prod_name  = product.title | default: block.settings.custom_title -%}
+            {%- assign prod_url   = product.url | default: '#' -%}
+            {%- assign prod_price = product.price_min | money | strip_html -%}
+
+            {%- assign color_idx = nil -%}
+            {%- if product != blank -%}
+              {%- for opt in product.options -%}
+                {%- assign opt_d = opt | downcase -%}
+                {%- if opt_d == 'color' or opt_d == 'colour' -%}
+                  {%- assign color_idx = forloop.index0 -%}{%- break -%}
+                {%- endif -%}
+              {%- endfor -%}
+            {%- endif -%}
+
+            {%- assign seen_colors   = '' -%}
+            {%- assign color_variants = '' -%}
+            {%- if color_idx != nil -%}
+              {%- for variant in product.variants -%}
+                {%- assign vc     = variant.options[color_idx] -%}
+                {%- assign vc_key = vc | downcase | replace: ' ', '-' -%}
+                {%- unless seen_colors contains vc_key -%}
+                  {%- assign seen_colors    = seen_colors    | append: vc_key | append: ',' -%}
+                  {%- assign color_variants = color_variants | append: variant.id | append: ':' | append: vc | append: ',' -%}
+                {%- endunless -%}
+              {%- endfor -%}
+            {%- endif -%}
+
+            <div class="cr-item" role="button" tabindex="0"
+                 data-name="{{ prod_name | escape }}"
+                 data-price="{{ prod_price }}"
+                 data-url="{{ prod_url }}"
+                 data-colors="{{ color_variants | remove: ' ' }}"
+                 data-default-variant="{{ product.selected_or_first_available_variant.id }}"
+                 {%- if product != blank %}
+                 data-opts="{{ product.options | join: '|' | escape }}"
+                 data-variants="{{ product.variants | json | escape }}"
+                 {%- endif %}
+                 {% if back_img != blank %}data-has-back="true"{% endif %}
+                 {{ block.shopify_attributes }}>
+
+              <!-- ① Small wire hook — collar se nikalta hua -->
+              <svg class="cr-hook" viewBox="0 0 20 28" fill="none" aria-hidden="true">
+                <!-- hook curve (top, goes over rod) -->
+                <path d="M10 28 L10 14 Q10 6 14 3 Q18 1 18 5 Q18 9 14 11 Q11 12 10 14"
+                      stroke="var(--cr-hng)" stroke-width="1.8" stroke-linecap="round" fill="none"/>
+              </svg>
+
+              <!-- ② Garment (shirt image) -->
+              <div class="cr-garment">
+                <!-- pos 0: side view -->
+                <div class="cr-view" data-pos="0" style="opacity:1;">
+                  {%- if side_img != blank -%}
+                    <img src="{{ side_img | image_url: width: 500 }}"
+                         width="{{ side_img.width }}" height="{{ side_img.height }}"
+                         alt="{{ prod_name | escape }} – side" loading="eager" decoding="async">
+                  {%- elsif front_img != blank -%}
+                    <img src="{{ front_img | image_url: width: 500 }}"
+                         width="{{ front_img.width }}" height="{{ front_img.height }}"
+                         alt="{{ prod_name | escape }} – front" loading="eager" decoding="async">
+                  {%- endif -%}
+                </div>
+                <!-- pos 1: front view -->
+                <div class="cr-view" data-pos="1" style="opacity:0;">
+                  {%- if front_img != blank -%}
+                    <img src="{{ front_img | image_url: width: 800 }}"
+                         width="{{ front_img.width }}" height="{{ front_img.height }}"
+                         alt="{{ prod_name | escape }} – front" loading="eager" decoding="async">
+                  {%- endif -%}
+                </div>
+                <!-- pos -1: back view -->
+                {%- if back_img != blank -%}
+                <div class="cr-view" data-pos="-1" style="opacity:0;">
+                  <img src="{{ back_img | image_url: width: 800 }}"
+                       width="{{ back_img.width }}" height="{{ back_img.height }}"
+                       alt="{{ prod_name | escape }} – back" decoding="async">
+                </div>
+                {%- endif -%}
+
+                <!-- Price tag -->
+                <div class="cr-tag" aria-hidden="true">
+                  <div class="cr-tag-inner"><span class="cr-tag-face">{{ prod_price }}</span></div>
+                </div>
+
+              </div><!-- /.cr-garment -->
+            </div><!-- /.cr-item -->
+          {%- endif -%}
+        {%- endfor -%}
+      </div><!-- /.cr-rack -->
+    </div><!-- /.cr-stage -->
+
+    {%- if sl_mode == 'manual' or sl_mode == 'auto' -%}
+    <button class="cr-sl-btn cr-sl-next" id="crNext-{{ section.id }}" aria-label="Next">
+      <svg viewBox="0 0 24 24" fill="none"><polyline points="9 18 15 12 9 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+    {%- endif -%}
+
+  </div><!-- /.cr-slider-wrap -->
+
+  <!-- Dots (auto/manual mode) -->
+  {%- if sl_mode == 'manual' or sl_mode == 'auto' -%}
+  <div class="cr-dots" id="crDots-{{ section.id }}"></div>
+  {%- endif -%}
+
+  <div class="cr-caption">
+    <div class="cr-cap-name" id="crCapName-{{ section.id }}">{{ section.settings.default_caption }}</div>
+    {%- if section.settings.cta_text != blank and section.settings.cta_url != blank -%}
+    <div class="cr-cta-wrap"><a class="cr-cta" href="{{ section.settings.cta_url }}">{{ section.settings.cta_text }}</a></div>
+    {%- endif -%}
+  </div>
+
+</section>
+
+<!-- ═══════════════════════════════════════════
+     FOCUS OVERLAY
+     ═══════════════════════════════════════════ -->
+<div class="cr-focus" id="crFocus-{{ section.id }}"
+     style="--cr-bg:{{ section.settings.bg_color }};--cr-txt:{{ section.settings.text_color }};--cr-hng:{{ section.settings.hanger_color }};--cr-tag-bg:{{ section.settings.tag_bg_color }};">
+  <div class="cr-focus-bd"></div>
+  <button class="cr-focus-x" id="crClose-{{ section.id }}" aria-label="Close">
+    <span class="cr-x-label">Close</span><span class="cr-xi"></span>
+  </button>
+  <div class="cr-focus-body">
+    <!-- LEFT: garment -->
+    <div class="cr-focus-left">
+      <div class="cr-focus-glow"></div>
+      <div class="cr-focus-stage" id="crFstage-{{ section.id }}">
+        <img class="cr-fs-img cr-fs-front" alt="">
+        <img class="cr-fs-img cr-fs-back" alt="">
+      </div>
+      <div class="cr-focus-shadow"></div>
+    </div>
+    <!-- RIGHT: details -->
+    <div class="cr-focus-info">
+      <div class="cr-focus-top">
+        <p class="cr-focus-count" id="crFcount-{{ section.id }}"></p>
+        <div class="cr-focus-nav">
+          <button type="button" class="cr-fnav" id="crFprev-{{ section.id }}" aria-label="Previous"><svg viewBox="0 0 24 24" fill="none"><path d="M15 5l-7 7 7 7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+          <button type="button" class="cr-fnav" id="crFnext-{{ section.id }}" aria-label="Next"><svg viewBox="0 0 24 24" fill="none"><path d="M9 5l7 7-7 7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+        </div>
+      </div>
+      <h2 class="cr-focus-name" id="crFname-{{ section.id }}"></h2>
+      <p class="cr-focus-price" id="crFprice-{{ section.id }}"></p>
+      <div class="cr-focus-tabs" id="crFtabs-{{ section.id }}">
+        <span class="cr-tab-ind"></span>
+        <button type="button" class="cr-tab cr-tab-on" data-cr-tab="front">{{ section.settings.front_label | default: 'Front' }}</button>
+        <button type="button" class="cr-tab" data-cr-tab="back">{{ section.settings.back_img_label | default: 'Back' }}</button>
+      </div>
+      <div class="cr-focus-opts" id="crFopts-{{ section.id }}"></div>
+      <button type="button" class="cr-focus-atc" id="crFatc-{{ section.id }}"><span class="cr-atc-txt">Add to cart</span><svg class="cr-atc-ic" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+      <div class="cr-focus-foot">
+        <span id="crFfootname-{{ section.id }}"></span>
+        <a id="crFbtn-{{ section.id }}" href="#">View in the shop <span aria-hidden="true">↗</span></a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+/* ══════════════════════════════════════════════
+   CLOTHING RACK  — #cr-{{ section.id }}
+   ══════════════════════════════════════════════ */
+#cr-{{ section.id }} {
+  background: var(--cr-bg); color: var(--cr-txt);
+  padding: {{ section.settings.padding_top }}px 0 {{ section.settings.padding_bottom }}px;
+  overflow-x: clip;
+  font-family: var(--font-body-family, system-ui, sans-serif);
+}
+
+/* ── rail caption ── */
+#cr-{{ section.id }} .cr-railcap {
+  display: flex; align-items: center; justify-content: center; gap: 14px;
+  font-size: 11px; letter-spacing: 2.5px; text-transform: uppercase; font-weight: 700;
+  margin-bottom: 28px;
+}
+#cr-{{ section.id }} .cr-railcap-sep { width: 1px; height: 13px; background: currentColor; opacity: .22; }
+#cr-{{ section.id }} .cr-railcap-dim { opacity: .4; }
+
+/* ── slider wrapper ── */
+#cr-{{ section.id }} .cr-slider-wrap {
+  position: relative;
+  display: flex; align-items: center;
+}
+
+/* ── stage (clip overflow for slider) ── */
+#cr-{{ section.id }} .cr-stage {
+  position: relative; flex: 1; min-width: 0;
+  padding-top: 12px;
+  overflow: hidden;     /* items scroll inside this */
+}
+
+/* ── rod ── */
+#cr-{{ section.id }} .cr-rod {
+  position: absolute; top: 14px; left: 0; right: 0;
+  height: 5px; background: var(--cr-rod);
+  pointer-events: none; z-index: 2;
+}
+#cr-{{ section.id }} .cr-rod-img {
+  position: absolute; inset: 0 0 auto; width: 100%; height: 26px;
+  object-fit: fill; transform: translateY(-35%);
+}
+
+/* ── rack row ── */
+#cr-{{ section.id }} .cr-rack {
+  --cr-h: var(--cr-h-mob);
+  display: flex; align-items: flex-start; justify-content: flex-start; gap: 0;
+  padding-top: 2px;
+  min-height: calc(var(--cr-h) + 40px);
+  /* NO overflow here — parent .cr-stage clips */
+  scrollbar-width: none;
+  transition: transform .42s cubic-bezier(.45,.05,.55,.95);
+  will-change: transform;
+}
+@media (min-width: 750px) {
+  #cr-{{ section.id }} .cr-rack { --cr-h: var(--cr-h-desk); }
+  #cr-{{ section.id }} .cr-rack { justify-content: center; }
+}
+
+/* ── each item ── */
+#cr-{{ section.id }} .cr-item {
+  flex: 0 0 auto;
+  width: calc(var(--cr-h) * 0.32);
+  display: flex; flex-direction: column; align-items: center;
+  cursor: pointer; position: relative; z-index: 1; outline: none;
+  -webkit-tap-highlight-color: transparent;
+  transform: rotate(var(--cr-sw, 0deg));
+  transform-origin: 50% 0;
+}
+#cr-{{ section.id }} .cr-item.cr-live { z-index: 5; }
+
+/* ── garment: contains hanger + shirt ── */
+#cr-{{ section.id }} .cr-garment {
+  position: relative;
+  width: 100%; height: var(--cr-h);
+}
+
+/* ── wire hook SVG: small, sits above garment in flex column ── */
+#cr-{{ section.id }} .cr-hook {
+  width: 20px; height: 28px;
+  flex-shrink: 0; display: block;
+  margin-bottom: -3px;   /* pulls shirt up so hook merges with collar */
+  position: relative; z-index: 3;
+  pointer-events: none;
+}
+.cr-focus-stage .cr-hook {
+  width: 22px; height: 30px;
+  margin-bottom: -4px;
+  display: block !important;
+}
+
+/* ── garment views ── */
+#cr-{{ section.id }} .cr-view {
+  position: absolute; inset: 0;
+  display: flex; align-items: flex-start; justify-content: center;
+  pointer-events: none; transform-origin: 50% 0;
+}
+#cr-{{ section.id }} .cr-view img {
+  height: 100%; width: auto; max-width: none;
+  -webkit-user-drag: none; user-select: none;
+}
+
+/* ── price tag ── */
+#cr-{{ section.id }} .cr-tag {
+  position: absolute; z-index: 4;
+  left: 50%; top: calc(var(--cr-h) * .05);
+  width: 0; height: 0;
+  transform-origin: 0 0;
+  transform: rotate(-20deg);
+  pointer-events: none;
+}
+#cr-{{ section.id }} .cr-tag::before {
+  content: ''; position: absolute; left: 0; top: 0;
+  width: 1px; height: calc(var(--cr-h) * .09 + 6px);
+  background: rgba(70,58,44,.45);
+}
+#cr-{{ section.id }} .cr-tag-inner {
+  position: absolute; left: 0; top: calc(var(--cr-h) * .09);
+  transform: translateX(-50%) rotate(12deg);
+  transform-origin: 50% 0;
+  transition: transform .7s cubic-bezier(.3,1.45,.45,1);
+}
+#cr-{{ section.id }} .cr-tag-face {
+  display: flex; align-items: center; justify-content: center;
+  min-width: 36px; padding: 8px 8px 5px;
+  background: var(--cr-tag-bg); color: var(--cr-txt);
+  border-radius: 3px 3px 4px 4px; white-space: nowrap;
+  font-size: 10px; font-weight: 700; letter-spacing: .5px;
+  box-shadow: 0 2px 6px rgba(0,0,0,.12); position: relative;
+}
+#cr-{{ section.id }} .cr-tag-face::before {
+  content: ''; position: absolute; left: 50%; top: 4px;
+  width: 4px; height: 4px; margin-left: -2px; border-radius: 50%;
+  background: rgba(70,58,44,.3);
+}
+
+#cr-{{ section.id }} .cr-rack { cursor: grab; -webkit-user-select: none; user-select: none; }
+#cr-{{ section.id }} .cr-rack.cr-grabbing, #cr-{{ section.id }} .cr-rack.cr-grabbing .cr-item { cursor: grabbing; }
+#cr-{{ section.id }} .cr-rack img { -webkit-user-drag: none; pointer-events: none; }
+
+/* ── slider arrows ── */
+#cr-{{ section.id }} .cr-sl-btn {
+  flex: 0 0 auto; position: relative; z-index: 10;
+  width: 44px; height: 44px; border-radius: 50%;
+  background: var(--cr-bg); border: 1.5px solid rgba(0,0,0,.16);
+  color: var(--cr-txt); cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 6px;
+  transition: background .2s, transform .16s, opacity .2s;
+  box-shadow: 0 2px 8px rgba(0,0,0,.10);
+}
+#cr-{{ section.id }} .cr-sl-btn svg { width: 18px; height: 18px; }
+#cr-{{ section.id }} .cr-sl-btn:hover { background: var(--cr-txt); color: var(--cr-bg); transform: scale(1.07); }
+#cr-{{ section.id }} .cr-sl-btn:disabled { opacity: .3; cursor: default; transform: none; }
+
+/* ── dots ── */
+#cr-{{ section.id }} .cr-dots {
+  display: flex; justify-content: center; gap: 7px; margin-top: 16px;
+}
+#cr-{{ section.id }} .cr-dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--cr-txt); opacity: .18; cursor: pointer;
+  transition: opacity .22s, transform .22s;
+  border: none; padding: 0;
+}
+#cr-{{ section.id }} .cr-dot.cr-dot-on { opacity: 1; transform: scale(1.3); }
+
+/* ── caption ── */
+#cr-{{ section.id }} .cr-caption { text-align: center; margin-top: 20px; }
+#cr-{{ section.id }} .cr-cap-name {
+  font-size: 14px; font-weight: 500; min-height: 20px;
+  transition: opacity .16s;
+}
+#cr-{{ section.id }} .cr-cap-name.cr-swap { opacity: 0; }
+#cr-{{ section.id }} .cr-cta-wrap { margin-top: 16px; }
+#cr-{{ section.id }} .cr-cta {
+  display: inline-block; text-decoration: none;
+  padding: 11px 28px; border-radius: 30px;
+  background: var(--cr-txt); color: var(--cr-bg);
+  font-size: 13px; font-weight: 500; letter-spacing: .5px;
+  transition: opacity .2s, transform .2s;
+}
+#cr-{{ section.id }} .cr-cta:hover { opacity: .88; transform: translateY(-1px); }
+
+/* ══════════════════════════════════════════════
+   FOCUS OVERLAY
+   ══════════════════════════════════════════════ */
+.cr-focus {
+  position: fixed; inset: 0; z-index: 99999;
+  display: none; color: var(--cr-txt);
+}
+.cr-focus.cr-open { display: block; }
+
+.cr-focus-bd {
+  position: fixed; inset: 0;
+  background: radial-gradient(120% 90% at 30% 50%, rgba(255,255,255,.97) 0%, rgba(248,246,242,.96) 60%, rgba(240,237,231,.97) 100%);
+  -webkit-backdrop-filter: blur(30px) saturate(1.1); backdrop-filter: blur(30px) saturate(1.1);
+  opacity: 0; transition: opacity .45s ease;
+}
+.cr-focus.cr-in .cr-focus-bd { opacity: 1; }
+
+.cr-focus-x {
+  position: fixed; top: 26px; right: 36px; z-index: 10;
+  display: flex; align-items: center; gap: 10px;
+  background: rgba(255,255,255,.7); border: 1px solid rgba(0,0,0,.08);
+  border-radius: 40px; padding: 8px 14px 8px 18px; cursor: pointer;
+  color: #1d1c1a; font: inherit; font-size: 12px; letter-spacing: .16em; text-transform: uppercase;
+  -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+  opacity: 0; transform: translateY(-6px);
+  transition: opacity .3s .2s, transform .3s .2s, background .2s, color .2s;
+}
+.cr-focus.cr-in .cr-focus-x { opacity: 1; transform: none; }
+.cr-focus-x:hover { background: #1d1c1a; color: #fff; }
+.cr-focus-x:hover .cr-xi { transform: rotate(90deg); }
+.cr-focus-x:hover .cr-xi::before, .cr-focus-x:hover .cr-xi::after { background: #fff; }
+.cr-xi { position: relative; display: block; width: 14px; height: 14px; transition: transform .35s cubic-bezier(.3,1.4,.5,1); }
+.cr-xi::before, .cr-xi::after {
+  content: ''; position: absolute; left: 50%; top: 50%;
+  width: 15px; height: 1.6px; background: #1d1c1a; border-radius: 2px; transition: background .2s;
+}
+.cr-xi::before { transform: translate(-50%,-50%) rotate(45deg); }
+.cr-xi::after  { transform: translate(-50%,-50%) rotate(-45deg); }
+
+.cr-focus-body {
+  position: relative; z-index: 2;
+  width: 100%; height: 100vh; height: 100dvh; max-width: 1360px; margin: 0 auto;
+  display: grid; grid-template-columns: 1.15fr 1fr; align-items: center;
+  column-gap: 5vw; padding: 60px 6vw 40px; box-sizing: border-box; overflow-y: auto;
+}
+
+/* ── LEFT: garment, always centered, never moves ── */
+.cr-focus-left {
+  position: relative; height: 100%; min-height: 0;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+}
+.cr-focus-glow {
+  position: absolute; left: 50%; top: 50%; width: 78%; aspect-ratio: 1;
+  transform: translate(-50%,-50%); border-radius: 50%;
+  background: radial-gradient(circle, rgba(0,0,0,.055) 0%, rgba(0,0,0,0) 65%);
+  pointer-events: none;
+}
+.cr-focus-stage {
+  --fh: min(72vh, {{ section.settings.focus_height }}px);
+  position: relative; width: 100%; height: var(--fh); flex: 0 0 auto;
+  -webkit-user-select: none; user-select: none;
+  opacity: 0; transform: translateY(-18px) rotate(-1.5deg); transform-origin: 50% 0;
+  transition: opacity .5s .1s, transform .9s .1s cubic-bezier(.2,1.25,.35,1);
+}
+.cr-focus.cr-in .cr-focus-stage { opacity: 1; transform: none; }
+.cr-fs-rod { display:none !important;
+  position: absolute; left: 50%; top: -9vh; width: 3px; height: calc(9vh + 18px);
+  transform: translateX(-50%); border-radius: 2px; z-index: 0;
+  background: linear-gradient(90deg,#7d7d7d,#e2e2e2 45%,#8a8a8a);
+}
+.cr-fs-img {
+  position: absolute; inset: 0; z-index: 1;
+  width: 100%; height: 100%; max-width: none;
+  object-fit: contain; object-position: 50% 0;
+  filter: drop-shadow(0 30px 30px rgba(0,0,0,.10));
+  transition: opacity .45s ease, transform .6s cubic-bezier(.22,.9,.3,1);
+}
+.cr-fs-img:not([src]), .cr-fs-img[src=""] { visibility: hidden; }
+.cr-fs-front { opacity: 1; transform: none; }
+.cr-fs-back  { opacity: 0; transform: scale(.97); }
+.cr-focus-stage.cr-show-back .cr-fs-front { opacity: 0; transform: scale(.97); }
+.cr-focus-stage.cr-show-back .cr-fs-back  { opacity: 1; transform: none; }
+.cr-focus-shadow {
+  width: 46%; height: 18px; margin-top: 10px; border-radius: 50%;
+  background: radial-gradient(ellipse, rgba(0,0,0,.14), rgba(0,0,0,0) 70%);
+}
+
+/* ── RIGHT: info ── */
+.cr-focus-info { width: 100%; max-width: 440px; color: #1d1c1a; text-align: left; }
+.cr-focus-info > * {
+  opacity: 0; transform: translateY(14px);
+  transition: opacity .45s, transform .55s cubic-bezier(.22,.9,.3,1);
+}
+.cr-focus.cr-in .cr-focus-info > * { opacity: 1; transform: none; }
+.cr-focus.cr-in .cr-focus-info > *:nth-child(1){transition-delay:.18s}
+.cr-focus.cr-in .cr-focus-info > *:nth-child(2){transition-delay:.24s}
+.cr-focus.cr-in .cr-focus-info > *:nth-child(3){transition-delay:.30s}
+.cr-focus.cr-in .cr-focus-info > *:nth-child(4){transition-delay:.36s}
+.cr-focus.cr-in .cr-focus-info > *:nth-child(5){transition-delay:.42s}
+.cr-focus.cr-in .cr-focus-info > *:nth-child(6){transition-delay:.48s}
+.cr-focus.cr-in .cr-focus-info > *:nth-child(7){transition-delay:.54s}
+
+.cr-focus-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; }
+.cr-focus-count { margin: 0; font-size: 11px; letter-spacing: .28em; color: #9a968f; font-variant-numeric: tabular-nums; }
+.cr-focus-nav { display: flex; gap: 8px; }
+.cr-fnav {
+  width: 36px; height: 36px; border-radius: 50%; padding: 0; cursor: pointer;
+  border: 1px solid rgba(0,0,0,.12); background: transparent; color: #1d1c1a;
+  display: flex; align-items: center; justify-content: center;
+  transition: background .2s, color .2s, transform .2s;
+}
+.cr-fnav svg { width: 15px; height: 15px; }
+.cr-fnav:hover { background: #1d1c1a; color: #fff; transform: scale(1.06); }
+
+.cr-focus-name {
+  margin: 0; font-size: clamp(26px, 2.6vw, 38px); font-weight: 500;
+  line-height: 1.08; letter-spacing: -.02em; color: #1d1c1a; font-family: inherit; text-transform: none;
+}
+.cr-focus-price { margin: 10px 0 0; font-size: 16px; font-weight: 500; color: #4a4741; font-variant-numeric: tabular-nums; }
+
+/* segmented Front/Back */
+.cr-focus-tabs {
+  position: relative; display: inline-flex; margin-top: 26px; padding: 4px;
+  background: rgba(0,0,0,.05); border-radius: 40px;
+}
+.cr-tab-ind {
+  position: absolute; top: 4px; bottom: 4px; left: 4px; width: 0;
+  background: #fff; border-radius: 40px; box-shadow: 0 2px 8px rgba(0,0,0,.10);
+  transition: transform .4s cubic-bezier(.3,1.3,.5,1), width .4s cubic-bezier(.3,1.3,.5,1);
+}
+.cr-tab {
+  position: relative; z-index: 1; background: transparent; border: 0; cursor: pointer;
+  font: inherit; font-size: 11px; font-weight: 600; letter-spacing: .16em; text-transform: uppercase;
+  color: #8f8b84; padding: 9px 22px; border-radius: 40px; transition: color .25s;
+}
+.cr-tab.cr-tab-on { color: #1d1c1a; }
+
+.cr-opt-group { margin-top: 24px; }
+.cr-opt-label { margin: 0 0 10px; font-size: 10px; font-weight: 600; letter-spacing: .22em; color: #9a968f; text-transform: uppercase; }
+.cr-opt-pills { display: flex; flex-wrap: wrap; gap: 8px; }
+.cr-pill {
+  min-width: 46px; height: 40px; padding: 0 14px; border-radius: 30px;
+  border: 1px solid rgba(0,0,0,.14); background: rgba(255,255,255,.7); color: #1d1c1a;
+  font: inherit; font-size: 13px; font-weight: 500; cursor: pointer;
+  transition: background .2s, color .2s, border-color .2s, transform .18s;
+}
+.cr-pill:hover { border-color: #1d1c1a; transform: translateY(-1px); }
+.cr-pill.cr-pill-on { background: #1d1c1a; color: #fff; border-color: #1d1c1a; }
+.cr-pill.cr-pill-na { opacity: .35; text-decoration: line-through; }
+
+.cr-focus-atc {
+  position: relative; overflow: hidden;
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  width: 100%; margin-top: 26px; height: 52px;
+  border: 0; border-radius: 40px; background: #1d1c1a; color: #fff;
+  font: inherit; font-size: 12px; font-weight: 600; letter-spacing: .18em; text-transform: uppercase;
+  cursor: pointer; box-shadow: 0 10px 24px -10px rgba(0,0,0,.45);
+  transition: transform .2s, box-shadow .25s, opacity .2s;
+}
+.cr-focus-atc::before {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(110deg, transparent 30%, rgba(255,255,255,.18) 50%, transparent 70%);
+  transform: translateX(-100%); transition: transform .7s ease;
+}
+.cr-focus-atc:hover::before { transform: translateX(100%); }
+.cr-focus-atc:hover { transform: translateY(-2px); box-shadow: 0 16px 30px -12px rgba(0,0,0,.5); }
+.cr-atc-ic { width: 16px; height: 16px; transition: transform .3s; }
+.cr-focus-atc:hover .cr-atc-ic { transform: translateX(4px); }
+.cr-focus-atc:disabled { opacity: .45; cursor: not-allowed; transform: none; box-shadow: none; }
+.cr-focus-atc:disabled .cr-atc-ic { display: none; }
+
+.cr-focus-foot {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-top: 34px; padding-top: 18px; border-top: 1px solid rgba(0,0,0,.09);
+  font-size: 13px; color: #6b675f;
+}
+.cr-focus-foot a {
+  color: #1d1c1a; text-decoration: none; font-weight: 500;
+  background: linear-gradient(currentColor,currentColor) 0 100%/0 1px no-repeat;
+  transition: background-size .3s; padding-bottom: 2px;
+}
+.cr-focus-foot a:hover { background-size: 100% 1px; }
+
+/* ── Responsive ── */
+@media (max-width: 749px) {
+  #cr-{{ section.id }} .cr-sl-btn { width: 36px; height: 36px; margin: 0 3px; }
+  .cr-focus-x { top: 12px; right: 12px; padding: 7px 12px 7px 14px; font-size: 10px; }
+  .cr-focus-body {
+    grid-template-columns: 1fr; row-gap: 22px; align-content: start; align-items: start;
+    padding: 70px 20px 32px;
+  }
+  .cr-focus-left { height: auto; }
+  .cr-focus-stage { --fh: min(46vh, 420px); }
+  .cr-fs-rod { top: -40px; height: 58px; }
+  .cr-focus-info { max-width: none; }
+  .cr-focus-name { font-size: 24px; }
+  .cr-focus-tabs { margin-top: 18px; }
+  .cr-focus-atc { height: 48px; }
+  .cr-focus-foot { margin-top: 24px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cr-focus-bd, .cr-focus-stage, .cr-focus-info > *, .cr-fs-img { transition-duration: .01ms !important; }
+}
+</style>
+<style>
+/* ══ Customisable styles (from theme editor) ══ */
+#cr-{{ section.id }} .cr-railcap > span:first-child:not(.cr-railcap-dim) { color: {{ section.settings.lbl1_color }}; font-size: {{ section.settings.lbl1_size }}px; }
+#cr-{{ section.id }} .cr-railcap .cr-railcap-dim { color: {{ section.settings.lbl2_color }}; font-size: {{ section.settings.lbl2_size }}px; opacity: 1; }
+#cr-{{ section.id }} .cr-tag-face { color: {{ section.settings.tag_txt_color }}; font-size: {{ section.settings.tag_size }}px; }
+
+#cr-{{ section.id }} .cr-sl-btn {
+  width: {{ section.settings.arw_size }}px; height: {{ section.settings.arw_size }}px;
+  background: {{ section.settings.arw_bg }}; color: {{ section.settings.arw_color }};
+}
+#cr-{{ section.id }} .cr-sl-btn svg { width: {{ section.settings.arw_size | times: 0.41 | round }}px; height: {{ section.settings.arw_size | times: 0.41 | round }}px; }
+#cr-{{ section.id }} .cr-sl-btn:hover:not(:disabled) { background: {{ section.settings.arw_hover_bg }}; color: {{ section.settings.arw_hover_color }}; }
+
+#crFocus-{{ section.id }} .cr-focus-name  { color: {{ section.settings.pop_name_color }}; font-size: {{ section.settings.pop_name_size }}px; }
+#crFocus-{{ section.id }} .cr-focus-price { color: {{ section.settings.pop_price_color }}; font-size: {{ section.settings.pop_price_size }}px; }
+
+#crFocus-{{ section.id }} .cr-focus-tabs { background: {{ section.settings.pop_tab_track }}; }
+#crFocus-{{ section.id }} .cr-tab-ind    { background: {{ section.settings.pop_tab_ind }}; }
+#crFocus-{{ section.id }} .cr-tab        { color: {{ section.settings.pop_tab_color }}; font-size: {{ section.settings.pop_tab_size }}px; }
+#crFocus-{{ section.id }} .cr-tab.cr-tab-on { color: {{ section.settings.pop_tab_on_color }}; }
+
+#crFocus-{{ section.id }} .cr-fnav { width: {{ section.settings.pop_nav_size }}px; height: {{ section.settings.pop_nav_size }}px; color: {{ section.settings.pop_nav_color }}; }
+#crFocus-{{ section.id }} .cr-fnav svg { width: {{ section.settings.pop_nav_size | times: 0.42 | round }}px; height: {{ section.settings.pop_nav_size | times: 0.42 | round }}px; }
+#crFocus-{{ section.id }} .cr-fnav:hover { background: {{ section.settings.pop_nav_hover_bg }}; color: {{ section.settings.pop_nav_hover_color }}; border-color: {{ section.settings.pop_nav_hover_bg }}; }
+
+#crFocus-{{ section.id }} .cr-focus-atc {
+  background: {{ section.settings.atc_bg }}; color: {{ section.settings.atc_color }};
+  font-size: {{ section.settings.atc_size }}px; height: {{ section.settings.atc_height }}px;
+}
+#crFocus-{{ section.id }} .cr-focus-atc:hover:not(:disabled) { background: {{ section.settings.atc_hover_bg }}; }
+
+@media (max-width: 749px) {
+  #cr-{{ section.id }} .cr-sl-btn { width: {{ section.settings.arw_size | times: 0.8 | round }}px; height: {{ section.settings.arw_size | times: 0.8 | round }}px; }
+  #crFocus-{{ section.id }} .cr-focus-name { font-size: {{ section.settings.pop_name_size | times: 0.66 | round }}px; }
+  #crFocus-{{ section.id }} .cr-focus-atc  { height: {{ section.settings.atc_height | times: 0.92 | round }}px; }
+}
+</style>
+
+<script>
+(function () {
+  'use strict';
+  var SID     = '{{ section.id }}';
+  var sec     = document.getElementById('cr-' + SID);
+  var rack    = document.getElementById('crRack-' + SID);
+  var stage   = document.getElementById('crStage-' + SID);
+  if (!sec || !rack) return;
+
+  var HOVER_MS     = {{ section.settings.hover_speed }};
+  var SL_MODE      = '{{ sl_mode }}';
+  var SL_AUTO_MS   = {{ sl_speed }};
+  var PER_DESK     = {{ section.settings.items_desktop | default: 4 }};
+  var PER_MOB      = {{ section.settings.items_mobile | default: 2 }};
+  var mqDesk       = window.matchMedia('(min-width:750px)');
+  var reduceMotion = window.matchMedia('(prefers-reduced-motion:reduce)').matches;
+  var fineHover    = window.matchMedia('(hover:hover) and (pointer:fine)').matches;
+
+  function ss(x){ return x*x*(3-2*x); }
+  function clamp(v,a,b){ return v<a?a:v>b?b:v; }
+
+  var items = [].slice.call(rack.querySelectorAll('.cr-item'));
+
+  /* ── image aspect & width ── */
+  function aspectOf(img){
+    if(img&&img.naturalWidth>0)return img.naturalWidth/img.naturalHeight;
+    var w=+img.getAttribute('width'),h=+img.getAttribute('height');
+    return w>0&&h>0?w/h:null;
+  }
+  function setWidth(it,e){
+    var g    = it.querySelector('.cr-garment');
+    var hpx  = g.getBoundingClientRect().height ||
+               parseFloat(getComputedStyle(rack).getPropertyValue('--cr-h'))||300;
+    var si   = it.querySelector('.cr-view[data-pos="0"] img');
+    var fi   = it.querySelector('.cr-view[data-pos="1"] img');
+    var a0   = si?(aspectOf(si)||0.30):0.30;
+    var a1   = fi?(aspectOf(fi)||0.70):0.70;
+    if(slotW){ it.style.width = slotW+'px'; return; }
+    it.style.width = Math.round(hpx*(a0+(a1-a0)*ss(e)))+'px';
+  }
+  /* ── products-per-view: equal slots, size auto-fits ── */
+  var slotW = 0;
+  function layoutSlots(){
+    var per = mqDesk.matches ? PER_DESK : PER_MOB;
+    var sw  = stage ? stage.clientWidth : 0;
+    if(!per || !sw){ slotW = 0; return; }
+    slotW = Math.floor(sw / per);
+    var maxH = parseFloat(getComputedStyle(sec).getPropertyValue(mqDesk.matches ? '--cr-h-desk' : '--cr-h-mob')) || 400;
+    /* widest view (front) must fit inside its slot */
+    var amax = 0.3;
+    items.forEach(function(it){
+      [].forEach.call(it.querySelectorAll('.cr-view img'),function(im){ var a = aspectOf(im); if(a && a > amax) amax = a; });
+    });
+    var h = Math.min(maxH, Math.floor(slotW * 0.92 / amax));
+    rack.style.setProperty('--cr-h', Math.max(80, h) + 'px');
+  }
+  var measuredOnce=false;
+  function scheduleInit(){ if(measuredOnce)return;measuredOnce=true;requestAnimationFrame(function(){measuredOnce=false;initWidths();}); }
+  function initWidths(){ layoutSlots(); items.forEach(function(it){var s=states.get(it);setWidth(it,s?s.t:0);}); }
+  var states=new Map();
+  items.forEach(function(it){states.set(it,{t:0,p:0});});
+  items.forEach(function(it){
+    it.querySelectorAll('img[src]').forEach(function(im){
+      if(im.complete&&im.naturalWidth)scheduleInit();
+      else im.addEventListener('load',scheduleInit,{once:true});
+    });
+  });
+  scheduleInit();
+  window.addEventListener('resize',scheduleInit);
+  window.addEventListener('load',scheduleInit);
+
+  /* ── swing physics ── */
+  var KS=17,KD=1.55,MA=12,crDragging=false,swRaf=0,swLast=0;
+  function impulse(el,v){ if(reduceMotion||!el)return;var s=el._sw||(el._sw={a:0,v:0});s.v+=v;if(!swRaf){swLast=0;swRaf=requestAnimationFrame(swLoop);} }
+  function swLoop(ts){ var dt=swLast?Math.min(.05,(ts-swLast)/1e3):1/60;swLast=ts;var live=false;
+    items.forEach(function(el){var s=el._sw;if(!s)return;
+      if(Math.abs(s.a)<.03&&Math.abs(s.v)<.08){if(s.a||s.v){s.a=s.v=0;el.style.setProperty('--cr-sw','0deg');}return;}
+      for(var i=0;i<2;i++){s.v+=(-KS*s.a-KD*s.v)*(dt/2);s.a+=s.v*(dt/2);}
+      if(s.a>MA){s.a=MA;s.v*=-.35;}if(s.a<-MA){s.a=-MA;s.v*=-.35;}
+      el.style.setProperty('--cr-sw',(-s.a).toFixed(2)+'deg');live=true;
+    });
+    swRaf=live?requestAnimationFrame(swLoop):0;
+  }
+  var scY=pageYOffset||0,scT=0;
+  window.addEventListener('scroll',function(){
+    var now=performance.now();if(now-scT<110)return;
+    var y=pageYOffset||0,dy=y-scY,dt=now-scT;scY=y;scT=now;
+    if(dt>400||!dy)return;var sp=dy/dt;
+    items.forEach(function(el,i){impulse(el,clamp(sp*9,-16,16)*(i%2?1:-.8));});
+  },{passive:true});
+
+  /* ── hover turn ── */
+  var running=false,rafId=0,lastTs=0;
+  function applyTurn(it,e){
+    var sv=it.querySelector('.cr-view[data-pos="0"]');
+    var fv=it.querySelector('.cr-view[data-pos="1"]');
+    if(!sv||!fv)return;
+    sv.style.opacity=Math.max(0,Math.min(1,(0.55-e)/.12));
+    if(e<=0)sv.style.transform='none';
+    else sv.style.transform='perspective(900px) rotateY('+(Math.min(1,e*2)*-86).toFixed(1)+'deg)';
+    fv.style.opacity=Math.max(0,Math.min(1,(e-.44)/.12));
+    fv.style.transform=e>=1?'none':'scale('+(0.92+0.08*e).toFixed(4)+')';
+    it.classList.toggle('cr-live',e>.02);
+    setWidth(it,e);
+  }
+  function animLoop(ts){
+    if(!lastTs)lastTs=ts;var dt=Math.min(64,ts-lastTs);lastTs=ts;
+    var k=1-Math.exp(-dt/(HOVER_MS*.3));var busy=false;
+    states.forEach(function(s,it){
+      var d=s.t-s.p;
+      if(Math.abs(d)>.02){s.p+=d*k;busy=true;}
+      else if(s.p!==s.t){s.p=s.t;busy=true;}else return;
+      applyTurn(it,ss(s.p));
+    });
+    if(busy)rafId=requestAnimationFrame(animLoop);else{running=false;lastTs=0;rafId=0;}
+  }
+  function kick(){if(!running){running=true;rafId=requestAnimationFrame(animLoop);}}
+
+  var curHover=null;
+  function setHover(it){
+    if(curHover===it)return;var prev=curHover;curHover=it;
+    if(prev)states.get(prev).t=0;
+    if(it){states.get(it).t=1;setCaption(it.dataset.name||null);}
+    else setCaption(null);kick();
+    if(prev){var i=items.indexOf(prev);if(items[i-1]&&items[i-1]!==it)impulse(items[i-1],12);if(items[i+1]&&items[i+1]!==it)impulse(items[i+1],-12);}
+    if(it){var j=items.indexOf(it);if(items[j-1])impulse(items[j-1],-26);if(items[j+1])impulse(items[j+1],26);}
+  }
+  if(fineHover){
+    var mX=0,mT=0;
+    rack.addEventListener('mousemove',function(ev){
+      if(crDragging)return;
+      var x=ev.clientX,y=ev.clientY,now=performance.now();
+      if(mT&&now-mT<100){var vx=(x-mX)/Math.max(1,now-mT);
+        items.forEach(function(it){if(it===curHover)return;var r=it.getBoundingClientRect();
+          if(y<r.top||y>r.bottom)return;var c=(r.left+r.right)/2;
+          if((mX-c)*(x-c)<0)impulse(it,clamp(vx*24,-50,50));
+        });
+      }
+      mX=x;mT=now;
+      if(curHover){var cr=curHover.getBoundingClientRect();if(x>=cr.left-20&&x<=cr.right+20&&y>=cr.top-10&&y<=cr.bottom+40)return;}
+      var best=null,bd=1e9;
+      items.forEach(function(it){var r=it.getBoundingClientRect();
+        if(y<r.top-10||y>r.bottom+40||x<r.left-2||x>r.right+2)return;
+        var d=Math.abs(x-(r.left+r.right)/2);if(d<bd){bd=d;best=it;}
+      });
+      setHover(best||null);
+    });
+    rack.addEventListener('mouseleave',function(){mT=0;setHover(null);});
+  }
+
+  var capEl=document.getElementById('crCapName-'+SID);
+  var capDef=capEl?capEl.textContent:'',capCur='',capTm=null;
+  function setCaption(txt){
+    var k=txt||'';if(!capEl||capCur===k)return;capCur=k;
+    capEl.classList.add('cr-swap');clearTimeout(capTm);
+    capTm=setTimeout(function(){capEl.textContent=txt||capDef;capEl.classList.remove('cr-swap');},160);
+  }
+
+  /* ══════════════════════════════════════
+     SLIDER LOGIC
+     ══════════════════════════════════════ */
+  if(SL_MODE==='manual'||SL_MODE==='auto'){
+    var prevBtn  = document.getElementById('crPrev-'+SID);
+    var nextBtn  = document.getElementById('crNext-'+SID);
+    var dotsWrap = document.getElementById('crDots-'+SID);
+    var cur = 0, curOff = 0, autoTimer = null, hoverPause = false;
+    var EASE = 'transform .9s cubic-bezier(.22,.8,.24,1)';
+    rack.style.transition = EASE;
+    rack.style.touchAction = 'pan-y';
+
+    function offOf(i){ return items[i] ? items[i].offsetLeft - items[0].offsetLeft : 0; }
+    function fitAlign(){
+      rack.style.justifyContent = 'flex-start';
+      rack.style.justifyContent = rack.scrollWidth > stage.clientWidth + 2 ? 'flex-start' : 'center';
+    }
+    function maxOff(){ return Math.max(0, rack.scrollWidth - stage.clientWidth); }
+    function maxIdx(){
+      var m = maxOff();
+      for(var i=0;i<items.length;i++){ if(offOf(i) >= m - 2) return i; }
+      return items.length-1;
+    }
+    function setX(x){ curOff = x; rack.style.transform = 'translateX(' + (-x) + 'px)'; }
+
+    /* wardrobe sway: every garment swings, slight wave delay + randomness */
+    function swayAll(dir, strength){
+      if(reduceMotion || !dir) return;
+      items.forEach(function(el,i){
+        var d = Math.abs(i - cur) * 45;
+        setTimeout(function(){ impulse(el, dir * strength * (0.75 + Math.random()*0.5)); }, d);
+      });
+      /* settle-back swing when the rack stops */
+      setTimeout(function(){
+        items.forEach(function(el){ impulse(el, -dir * strength * 0.45); });
+      }, 780);
+    }
+
+    function buildDots(){
+      if(!dotsWrap) return;
+      dotsWrap.innerHTML = '';
+      var n = maxIdx() + 1;
+      if(n <= 1){ dotsWrap.style.display = 'none'; return; }
+      dotsWrap.style.display = '';
+      for(var i=0;i<n;i++){
+        (function(idx){
+          var d = document.createElement('button');
+          d.type = 'button'; d.className = 'cr-dot';
+          d.setAttribute('aria-label','Slide '+(idx+1));
+          d.addEventListener('click',function(){ goSlide(idx); resetAuto(); });
+          dotsWrap.appendChild(d);
+        })(i);
+      }
+      updateUI();
+    }
+    function updateUI(){
+      if(dotsWrap) [].forEach.call(dotsWrap.querySelectorAll('.cr-dot'),function(d,i){ d.classList.toggle('cr-dot-on', i===cur); });
+      var mi = maxIdx();
+      if(prevBtn) prevBtn.disabled = SL_MODE!=='auto' && cur<=0;
+      if(nextBtn) nextBtn.disabled = SL_MODE!=='auto' && cur>=mi;
+    }
+
+    function goSlide(n, noSway){
+      var mi = maxIdx();
+      cur = Math.max(0, Math.min(n, mi));
+      var from = curOff;
+      var to = Math.min(offOf(cur), maxOff());
+      rack.style.transition = EASE;
+      setX(to);
+      var dx = to - from;
+      if(!noSway && Math.abs(dx) > 1){
+        var iw = items[0] ? items[0].getBoundingClientRect().width || 80 : 80;
+        swayAll(dx > 0 ? 1 : -1, clamp(Math.abs(dx)/iw * 16, 14, 38));
+      }
+      updateUI();
+    }
+    function nextSlide(){ var mi = maxIdx(); goSlide(cur >= mi ? 0 : cur + 1); }
+    function prevSlide(){ var mi = maxIdx(); goSlide(cur <= 0 ? (SL_MODE==='auto' ? mi : 0) : cur - 1); }
+
+    if(nextBtn) nextBtn.addEventListener('click',function(){ nextSlide(); resetAuto(); });
+    if(prevBtn) prevBtn.addEventListener('click',function(){ prevSlide(); resetAuto(); });
+
+    /* auto play — one product at a time, pauses on hover / drag / hidden tab */
+    function startAuto(){
+      clearInterval(autoTimer);
+      if(SL_MODE!=='auto' || reduceMotion) return;
+      autoTimer = setInterval(function(){
+        if(hoverPause || crDragging || document.hidden) return;
+        if(typeof curFocus!=='undefined' && curFocus) return;
+        nextSlide();
+      }, SL_AUTO_MS);
+    }
+    function resetAuto(){ startAuto(); }
+    stage.addEventListener('mouseenter',function(){ hoverPause = true; });
+    stage.addEventListener('mouseleave',function(){ hoverPause = false; });
+
+    /* click-hold drag (mouse + touch) */
+    var pId = null, startX = 0, startY = 0, startOff = 0, lastX = 0, lastT = 0, vel = 0, moved = false, axis = '';
+    rack.addEventListener('pointerdown',function(e){
+      if(e.button !== undefined && e.button !== 0) return;
+      pId = e.pointerId; startX = lastX = e.clientX; startY = e.clientY;
+      startOff = curOff; lastT = performance.now(); vel = 0; moved = false; axis = '';
+    });
+    window.addEventListener('pointermove',function(e){
+      if(pId === null || e.pointerId !== pId) return;
+      var dx = e.clientX - startX, dy = e.clientY - startY;
+      if(!axis){
+        if(Math.abs(dx) < 6 && Math.abs(dy) < 6) return;
+        axis = Math.abs(dx) > Math.abs(dy) ? 'x' : 'y';
+        if(axis === 'y'){ pId = null; return; }
+        moved = true; crDragging = true;
+        rack.style.transition = 'none';
+        rack.classList.add('cr-grabbing');
+        if(typeof setHover === 'function') setHover(null);
+        try{ rack.setPointerCapture(e.pointerId); }catch(_){}
+      }
+      var now = performance.now(), dt = Math.max(1, now - lastT);
+      vel = (e.clientX - lastX) / dt; lastX = e.clientX; lastT = now;
+      var x = startOff - dx, m = maxOff();
+      if(x < 0) x = x * 0.35;                 /* rubber band */
+      if(x > m) x = m + (x - m) * 0.35;
+      setX(x);
+      /* garments lag behind the hand — slow continuous sway */
+      if(!reduceMotion) items.forEach(function(el){ impulse(el, clamp(-vel * 3.2, -6, 6)); });
+    });
+    function endDrag(e){
+      if(pId === null || (e && e.pointerId !== pId)) return;
+      pId = null;
+      rack.classList.remove('cr-grabbing');
+      if(!moved){ return; }
+      /* snap to nearest product, with a little momentum */
+      var target = curOff - vel * 220, best = 0, bd = 1e9;
+      for(var i=0;i<=maxIdx();i++){ var d = Math.abs(offOf(i) - target); if(d < bd){ bd = d; best = i; } }
+      goSlide(best);
+      setTimeout(function(){ crDragging = false; }, 60);
+      resetAuto();
+    }
+    window.addEventListener('pointerup', endDrag);
+    window.addEventListener('pointercancel', endDrag);
+    /* swallow the click that ends a drag so popup doesn't open */
+    rack.addEventListener('click',function(e){ if(moved){ e.stopPropagation(); e.preventDefault(); moved = false; } }, true);
+    rack.addEventListener('dragstart',function(e){ e.preventDefault(); });
+
+    /* keep position valid while widths change (hover / resize / image load) */
+    var rT = null;
+    function relayout(){ clearTimeout(rT); rT = setTimeout(function(){ fitAlign(); buildDots(); goSlide(cur, true); }, 120); }
+    window.addEventListener('resize', relayout);
+    window.addEventListener('load', function(){ relayout(); startAuto(); });
+    fitAlign(); buildDots(); goSlide(0, true); startAuto();
+  }
+
+  /* ══════════════════════════════════════
+     FOCUS VIEW
+     ══════════════════════════════════════ */
+  var focus  = document.getElementById('crFocus-'+SID);
+  var fstage = document.getElementById('crFstage-'+SID);
+  var fname  = document.getElementById('crFname-'+SID);
+  var ftabs  = document.getElementById('crFtabs-'+SID);
+  var fbtn   = document.getElementById('crFbtn-'+SID);
+  var fcount = document.getElementById('crFcount-'+SID);
+  var fprice = document.getElementById('crFprice-'+SID);
+  var fopts  = document.getElementById('crFopts-'+SID);
+  var fatc   = document.getElementById('crFatc-'+SID);
+  var ffoot  = document.getElementById('crFfootname-'+SID);
+  var closeX = document.getElementById('crClose-'+SID);
+  var fprev  = document.getElementById('crFprev-'+SID);
+  var fnext  = document.getElementById('crFnext-'+SID);
+  var fFront = fstage?fstage.querySelector('.cr-fs-front'):null;
+  var fBack  = fstage?fstage.querySelector('.cr-fs-back'):null;
+  var fInd   = ftabs?ftabs.querySelector('.cr-tab-ind'):null;
+  if(focus) document.body.appendChild(focus);
+  function big(u){return u?u.replace(/([?&])width=\d+/,'$1width=1400'):'';}
+  function moveInd(){
+    if(!fInd||!ftabs)return;
+    var on=ftabs.querySelector('.cr-tab.cr-tab-on');if(!on)return;
+    fInd.style.width=on.offsetWidth+'px';
+    fInd.style.transform='translateX('+(on.offsetLeft-4)+'px)';
+  }
+
+  var curFocus=null,curView='front',fVariants=[],fSel=[],fCur=null;
+  var fatcT=fatc?fatc.querySelector('.cr-atc-txt'):null;var ATC_TXT=fatcT?fatcT.textContent:'Add to cart';
+  function pad(n){return (n<10?'0':'')+n;}
+  function money(c){
+    try{return new Intl.NumberFormat(document.documentElement.lang||undefined,{style:'currency',currency:(window.Shopify&&Shopify.currency&&Shopify.currency.active)||'USD'}).format(c/100);}
+    catch(e){return (c/100).toFixed(2);}
+  }
+  function esc(t){var d=document.createElement('div');d.textContent=t;return d.innerHTML;}
+
+  function findVariant(){
+    for(var i=0;i<fVariants.length;i++){
+      var v=fVariants[i],ok=true;
+      for(var j=0;j<fSel.length;j++){if(v.options[j]!==fSel[j]){ok=false;break;}}
+      if(ok)return v;
+    }
+    return null;
+  }
+  function applyVariant(){
+    fCur=findVariant();
+    if(fopts)fopts.querySelectorAll('.cr-pill').forEach(function(b){
+      var oi=+b.dataset.oi;b.classList.toggle('cr-pill-on',fSel[oi]===b.dataset.val);
+      var has=fVariants.some(function(v){return v.available&&v.options[oi]===b.dataset.val;});
+      b.classList.toggle('cr-pill-na',!has);
+    });
+    if(fCur){
+      if(fprice)fprice.textContent=money(fCur.price);
+      if(fatc){fatc.disabled=!fCur.available;fatcT.textContent=fCur.available?ATC_TXT:'Sold out';}
+      if(fCur.featured_image&&fCur.featured_image.src&&fSel.length>1){
+        if(fFront)fFront.src=fCur.featured_image.src;
+      }
+    }else if(fatc){fatc.disabled=true;fatcT.textContent='Unavailable';}
+  }
+
+  function openFocus(it){
+    if(!focus||!fstage)return;
+    curFocus=it;curView='front';
+    fstage.classList.remove('cr-show-back');
+    var fi=it.querySelector('.cr-view[data-pos="1"] img')||it.querySelector('.cr-view[data-pos="0"] img');
+    var bi=it.querySelector('.cr-view[data-pos="-1"] img');
+    if(fFront){fFront.src=fi?big(fi.currentSrc||fi.src):'';fFront.alt=it.dataset.name||'';}
+    if(fBack){if(bi){fBack.src=big(bi.currentSrc||bi.src);}else{fBack.removeAttribute('src');}}
+    var name=it.dataset.name||'';
+    if(fname)fname.textContent=name;
+    if(ffoot)ffoot.textContent=name;
+    if(fbtn)fbtn.href=it.dataset.url||'#';
+    if(fcount)fcount.textContent=pad(items.indexOf(it)+1)+' / '+pad(items.length);
+    if(fprice)fprice.textContent=it.dataset.price||'';
+    var backTab=ftabs?ftabs.querySelector('[data-cr-tab="back"]'):null;
+    if(backTab)backTab.style.display=it.dataset.hasBack?'':'none';
+    if(ftabs)ftabs.querySelectorAll('.cr-tab').forEach(function(b){b.classList.toggle('cr-tab-on',b.dataset.crTab==='front');});
+    if(ftabs)ftabs.style.display=it.dataset.hasBack?'':'none';
+
+    /* options + variants */
+    fVariants=[];fSel=[];fCur=null;
+    try{fVariants=JSON.parse(it.dataset.variants||'[]');}catch(e){}
+    var names=(it.dataset.opts||'').split('|').filter(Boolean);
+    if(fopts){
+      fopts.innerHTML='';
+      var first=fVariants.filter(function(v){return v.available;})[0]||fVariants[0];
+      if(first)fSel=first.options.slice();
+      names.forEach(function(nm,oi){
+        var vals=[];fVariants.forEach(function(v){if(vals.indexOf(v.options[oi])<0)vals.push(v.options[oi]);});
+        if(!/^(size|sizes|taille|talla|größe|groesse|maat)$/i.test(String(nm).trim()))return; /* only Size option is shown */
+        var g=document.createElement('div');g.className='cr-opt-group';
+        var h='<p class="cr-opt-label">'+esc(nm)+'</p><div class="cr-opt-pills">';
+        vals.forEach(function(val){h+='<button type="button" class="cr-pill" data-oi="'+oi+'" data-val="'+esc(val)+'">'+esc(val)+'</button>';});
+        g.innerHTML=h+'</div>';fopts.appendChild(g);
+      });
+    }
+    if(fatc){fatc.style.display=fVariants.length?'':'none';}
+    if(fVariants.length)applyVariant();
+
+    focus.classList.add('cr-open');
+    document.body.style.overflow='hidden';
+    requestAnimationFrame(function(){focus.classList.add('cr-in');moveInd();});
+  }
+  function stepFocus(d){
+    if(!curFocus)return;
+    var i=(items.indexOf(curFocus)+d+items.length)%items.length;
+    fstage.style.transition='none';fstage.style.opacity='0';
+    openFocus(items[i]);
+    requestAnimationFrame(function(){fstage.style.transition='';fstage.style.opacity='';});
+  }
+  if(fprev)fprev.addEventListener('click',function(){stepFocus(-1);});
+  if(fnext)fnext.addEventListener('click',function(){stepFocus(1);});
+  document.addEventListener('keydown',function(e){
+    if(!curFocus)return;
+    if(e.key==='ArrowRight')stepFocus(1);
+    if(e.key==='ArrowLeft')stepFocus(-1);
+  });
+  window.addEventListener('resize',moveInd);
+
+  function closeFocus(){
+    if(!focus)return;
+    focus.classList.remove('cr-in');
+    setTimeout(function(){focus.classList.remove('cr-open');document.body.style.overflow='';curFocus=null;},380);
+  }
+
+  if(fopts){
+    fopts.addEventListener('click',function(e){
+      var b=e.target.closest('.cr-pill');if(!b)return;
+      var oi=+b.dataset.oi,val=b.dataset.val;
+      fSel[oi]=val;
+      if(!findVariant()){
+        /* other options (e.g. colour) are hidden — pick the best variant with this size */
+        var best=null;
+        fVariants.forEach(function(v){if(v.options[oi]!==val)return;if(!best||(!best.available&&v.available))best=v;});
+        if(best)fSel=best.options.slice();
+      }
+      applyVariant();
+    });
+  }
+  if(fatc){
+    fatc.addEventListener('click',function(){
+      if(!fCur||!fCur.available)return;
+      fatc.disabled=true;fatcT.textContent='Adding…';
+      var ROOT=(window.Shopify&&Shopify.routes&&Shopify.routes.root)||'/';
+      /* sections the theme uses to render cart UI (Horizon: data-section-id, Dawn: cart-drawer / cart-icon-bubble) */
+      var secIds=[];
+      document.querySelectorAll('cart-items-component[data-section-id], [data-cart-section-id]').forEach(function(el){
+        var id=el.dataset.sectionId||el.dataset.cartSectionId;if(id&&secIds.indexOf(id)<0)secIds.push(id);
+      });
+      if(document.getElementById('cart-icon-bubble'))secIds.push('cart-icon-bubble');
+      if(document.querySelector('cart-drawer#CartDrawer, cart-drawer'))secIds.push('cart-drawer');
+      secIds=secIds.slice(0,5);
+      fetch(ROOT+'cart/add.js',{
+        method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json','X-Requested-With':'XMLHttpRequest'},
+        body:JSON.stringify({items:[{id:fCur.id,quantity:1}],sections:secIds.join(','),sections_url:location.pathname})
+      }).then(function(r){return r.json().then(function(j){if(!r.ok)throw j;return j;});}).then(function(res){
+        var sections=res.sections||{};
+        return fetch(ROOT+'cart.js',{headers:{'Accept':'application/json'}}).then(function(r){return r.json();}).then(function(cart){
+          fatcT.textContent='Added ✓';
+
+          /* ① Horizon theme: its cart drawer, items & bubble all listen for "cart:update" */
+          document.dispatchEvent(new CustomEvent('cart:update',{bubbles:true,detail:{
+            resource:cart, sourceId:'cr-'+SID,
+            data:{source:'product-form-component', itemCount:cart.item_count, productId:fCur.product_id||'', sections:sections}
+          }}));
+
+          /* ② Dawn-style themes: swap rendered sections in place */
+          var dawn=document.querySelector('cart-drawer');
+          if(dawn&&typeof dawn.renderContents==='function'&&sections['cart-drawer']){
+            try{dawn.classList.remove('is-empty');dawn.renderContents({id:fCur.id,sections:sections});}catch(_){}
+          }else{
+            if(sections['cart-icon-bubble']){
+              var bub=document.getElementById('cart-icon-bubble');
+              var tmp=new DOMParser().parseFromString(sections['cart-icon-bubble'],'text/html');
+              var nb=tmp.getElementById('cart-icon-bubble')||tmp.querySelector('.shopify-section');
+              if(bub&&nb)bub.innerHTML=nb.innerHTML;
+            }
+          }
+
+          /* ③ generic counters as last resort */
+          document.querySelectorAll('.cart-count-bubble span[aria-hidden], [data-cart-count], .cart-count, .cart-bubble__text-count').forEach(function(el){el.textContent=cart.item_count;});
+          document.querySelectorAll('.cart-bubble').forEach(function(el){el.classList.toggle('visually-hidden',!cart.item_count);el.removeAttribute('hidden');});
+
+          /* ④ close popup and open the theme's cart drawer */
+          setTimeout(function(){
+            closeFocus();
+            var hd=document.querySelector('cart-drawer-component');
+            if(hd&&typeof hd.open==='function'){try{hd.open();}catch(_){}}
+            else if(dawn&&typeof dawn.open==='function'){try{dawn.open();}catch(_){}}
+            fatc.disabled=false;fatcT.textContent=ATC_TXT;
+          },650);
+        });
+      }).catch(function(err){
+        fatcT.textContent=(err&&err.description)?String(err.description).slice(0,40):'Error – try again';
+        setTimeout(function(){fatc.disabled=false;fatcT.textContent=ATC_TXT;},1800);
+      });
+    });
+  }
+
+  if(ftabs){
+    ftabs.addEventListener('click',function(e){
+      var btn=e.target.closest('.cr-tab');if(!btn)return;
+      var v=btn.dataset.crTab;if(v===curView)return;curView=v;
+      ftabs.querySelectorAll('.cr-tab').forEach(function(b){b.classList.toggle('cr-tab-on',b.dataset.crTab===v);});
+      fstage.classList.toggle('cr-show-back',v==='back');
+      moveInd();
+    });
+  }
+
+  var lastPtr='';
+  document.addEventListener('pointerdown',function(e){lastPtr=e.pointerType||'';},true);
+  var tapSel=null;
+  items.forEach(function(it){
+    it.addEventListener('click',function(e){
+      e.preventDefault();
+      var isMouse=lastPtr==='mouse'||fineHover;
+      if(!isMouse&&tapSel!==it){
+        if(tapSel){states.get(tapSel).t=0;kick();}
+        tapSel=it;states.get(it).t=1;kick();return;
+      }
+      tapSel=null;openFocus(it);
+    });
+    it.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();openFocus(it);}});
+  });
+
+  if(closeX)closeX.addEventListener('click',closeFocus);
+  document.addEventListener('keydown',function(e){if(e.key==='Escape'&&curFocus)closeFocus();});
+  if(focus){
+    focus.addEventListener('click',function(e){
+      if(e.target===focus||e.target.classList.contains('cr-focus-bd'))closeFocus();
+    });
+  }
+
+  /* entrance animation */
+  if(!reduceMotion&&Element.prototype.animate&&'IntersectionObserver' in window){
+    sec.style.opacity='0';
+    var io=new IntersectionObserver(function(en){
+      if(!en[0].isIntersecting)return;io.disconnect();
+      sec.style.removeProperty('opacity');
+      items.forEach(function(el,i){
+        var dir=i%2?-1:1;
+        el.animate([
+          {transform:'translateY(-75px) rotate('+(dir*5)+'deg)',opacity:0},
+          {transform:'translateY(6px) rotate('+(-dir*1.5)+'deg)',opacity:1,offset:.72},
+          {transform:'translateY(0) rotate(0deg)',opacity:1}
+        ],{duration:600,delay:90+i*75,easing:'cubic-bezier(.25,.8,.35,1)',fill:'backwards'});
+        setTimeout(function(){impulse(el,dir*28);},90+i*75+540);
+      });
+    },{threshold:.15});
+    io.observe(sec);
+  }
+
+})();
+</script>
+
+{% schema %}
+{
+  "name": "Clothing Rack",
+  "tag": "section",
+  "class": "cr-section-wrapper",
+  "settings": [
+    { "type": "header",       "content": "Colors" },
+    { "type": "color",  "id": "bg_color",       "label": "Background",           "default": "#f5f3f0" },
+    { "type": "color",  "id": "text_color",      "label": "Text",                 "default": "#0c0c0c" },
+    { "type": "color",  "id": "rod_color",       "label": "Rod",                  "default": "#b8b4ae" },
+    { "type": "color",  "id": "hanger_color",    "label": "Hanger",               "default": "#9e8a72" },
+    { "type": "color",  "id": "tag_bg_color",    "label": "Price tag background", "default": "#f0ece5" },
+    { "type": "header",       "content": "Rod image (optional)" },
+    { "type": "image_picker", "id": "rod_image", "label": "Custom rod photo" },
+    { "type": "header",       "content": "Slider" },
+    {
+      "type": "select",
+      "id": "slider_mode",
+      "label": "Slider mode",
+      "options": [
+        { "value": "none",   "label": "No slider – show all items" },
+        { "value": "manual", "label": "Manual – arrow buttons" },
+        { "value": "auto",   "label": "Auto slide (+ arrow buttons)" }
+      ],
+      "default": "manual"
+    },
+    {
+      "type": "range",
+      "id": "auto_speed",
+      "label": "Auto-slide interval (seconds)",
+      "min": 1, "max": 8, "step": 1, "default": 3, "unit": "s",
+      "info": "Only active when slider mode is set to Auto slide"
+    },
+    { "type": "header", "content": "Labels" },
+    { "type": "text", "id": "label_primary",   "label": "Rail label left",      "default": "NEW COLLECTION" },
+    { "type": "text", "id": "label_secondary", "label": "Rail label right",     "default": "PREMIUM STREETWEAR" },
+    { "type": "text", "id": "default_caption", "label": "Default caption",      "default": "Hover to explore" },
+    { "type": "text", "id": "front_label",     "label": "Front tab text",       "default": "Front" },
+    { "type": "text", "id": "back_img_label",  "label": "Back tab text",        "default": "Back" },
+    { "type": "text", "id": "btn_label",       "label": "Product page button",  "default": "See Availability ↗" },
+    { "type": "text", "id": "cta_text",        "label": "Collection CTA text" },
+    { "type": "url",  "id": "cta_url",         "label": "Collection CTA URL" },
+    { "type": "header", "content": "Sizes" },
+    { "type": "range", "id": "rack_height_desktop", "label": "Rack height desktop", "min": 200, "max": 700, "step": 10, "default": 420, "unit": "px" },
+    { "type": "range", "id": "rack_height_mobile",  "label": "Rack height mobile",  "min": 150, "max": 400, "step": 10, "default": 260, "unit": "px" },
+    { "type": "header", "content": "Products visible on screen" },
+    { "type": "range", "id": "items_desktop", "label": "Products per view – desktop", "min": 1, "max": 8, "step": 1, "default": 4 },
+    { "type": "range", "id": "items_mobile",  "label": "Products per view – mobile",  "min": 1, "max": 4, "step": 1, "default": 2 },
+    { "type": "paragraph", "content": "Product size auto-adjusts to fit this count. Rack height above acts as the maximum size." },
+    { "type": "range", "id": "focus_height",        "label": "Spotlight height",    "min": 300, "max": 900, "step": 10, "default": 640, "unit": "px" },
+    { "type": "range", "id": "hover_speed",         "label": "Hover speed",         "min": 300, "max": 1200,"step": 50, "default": 850, "unit": "ms" },
+    { "type": "range", "id": "padding_top",    "label": "Padding top",    "min": 0, "max": 160, "step": 4, "default": 76,  "unit": "px" },
+    { "type": "range", "id": "padding_bottom", "label": "Padding bottom", "min": 0, "max": 160, "step": 4, "default": 120, "unit": "px" },
+
+    { "type": "header", "content": "Rack – rail labels" },
+    { "type": "color", "id": "lbl1_color", "label": "Left label colour",  "default": "#0c0c0c" },
+    { "type": "range", "id": "lbl1_size",  "label": "Left label size",    "min": 8, "max": 28, "step": 1, "default": 11, "unit": "px" },
+    { "type": "color", "id": "lbl2_color", "label": "Right label colour", "default": "#9a968f" },
+    { "type": "range", "id": "lbl2_size",  "label": "Right label size",   "min": 8, "max": 28, "step": 1, "default": 11, "unit": "px" },
+
+    { "type": "header", "content": "Rack – price tags" },
+    { "type": "color", "id": "tag_txt_color", "label": "Price tag text colour", "default": "#0c0c0c" },
+    { "type": "range", "id": "tag_size",      "label": "Price tag text size",   "min": 7, "max": 18, "step": 1, "default": 10, "unit": "px" },
+    { "type": "paragraph", "content": "Price tag background is under Colors at the top." },
+
+    { "type": "header", "content": "Rack – slider arrows" },
+    { "type": "color", "id": "arw_color",     "label": "Arrow icon colour",        "default": "#0c0c0c" },
+    { "type": "color", "id": "arw_bg",        "label": "Arrow background",         "default": "#f5f3f0" },
+    { "type": "color", "id": "arw_hover_color","label": "Arrow icon colour (hover)","default": "#ffffff" },
+    { "type": "color", "id": "arw_hover_bg",  "label": "Arrow background (hover)", "default": "#0c0c0c" },
+    { "type": "range", "id": "arw_size",      "label": "Arrow button size",        "min": 28, "max": 72, "step": 2, "default": 44, "unit": "px" },
+
+    { "type": "header", "content": "Popup – title & price" },
+    { "type": "color", "id": "pop_name_color",  "label": "Product name colour", "default": "#1d1c1a" },
+    { "type": "range", "id": "pop_name_size",   "label": "Product name size",   "min": 16, "max": 64, "step": 1, "default": 38, "unit": "px" },
+    { "type": "color", "id": "pop_price_color", "label": "Price colour",        "default": "#4a4741" },
+    { "type": "range", "id": "pop_price_size",  "label": "Price size",          "min": 10, "max": 36, "step": 1, "default": 16, "unit": "px" },
+
+    { "type": "header", "content": "Popup – Front / Back toggle" },
+    { "type": "color", "id": "pop_tab_color",    "label": "Tab text colour",        "default": "#8f8b84" },
+    { "type": "color", "id": "pop_tab_on_color", "label": "Active tab text colour", "default": "#1d1c1a" },
+    { "type": "color", "id": "pop_tab_track",    "label": "Toggle background",      "default": "#ededeb" },
+    { "type": "color", "id": "pop_tab_ind",      "label": "Active pill colour",     "default": "#ffffff" },
+    { "type": "range", "id": "pop_tab_size",     "label": "Tab text size",          "min": 8, "max": 20, "step": 1, "default": 11, "unit": "px" },
+
+    { "type": "header", "content": "Popup – next / previous arrows" },
+    { "type": "color", "id": "pop_nav_color",       "label": "Arrow colour",             "default": "#1d1c1a" },
+    { "type": "color", "id": "pop_nav_hover_bg",    "label": "Arrow background (hover)", "default": "#1d1c1a" },
+    { "type": "color", "id": "pop_nav_hover_color", "label": "Arrow colour (hover)",     "default": "#ffffff" },
+    { "type": "range", "id": "pop_nav_size",        "label": "Arrow button size",        "min": 24, "max": 64, "step": 2, "default": 36, "unit": "px" },
+
+    { "type": "header", "content": "Popup – Add to cart button" },
+    { "type": "color", "id": "atc_bg",       "label": "Button background",         "default": "#1d1c1a" },
+    { "type": "color", "id": "atc_color",    "label": "Button text colour",        "default": "#ffffff" },
+    { "type": "color", "id": "atc_hover_bg", "label": "Button background (hover)", "default": "#000000" },
+    { "type": "range", "id": "atc_size",     "label": "Button text size",          "min": 9, "max": 22, "step": 1, "default": 12, "unit": "px" },
+    { "type": "range", "id": "atc_height",   "label": "Button height",             "min": 36, "max": 80, "step": 2, "default": 52, "unit": "px" }
+  ],
+  "blocks": [
+    {
+      "type": "product_item",
+      "name": "Rack Item",
+      "settings": [
+        {
+          "type": "image_picker",
+          "id": "side_image",
+          "label": "① Side-view image ★",
+          "info": "Narrow side photo of garment (shows initially on rack)"
+        },
+        {
+          "type": "image_picker",
+          "id": "front_image",
+          "label": "② Front-view image",
+          "info": "If blank, product featured image is used"
+        },
+        {
+          "type": "image_picker",
+          "id": "back_image",
+          "label": "③ Back-view image (optional)",
+          "info": "Enables Front / Back toggle in spotlight"
+        },
+        {
+          "type": "product",
+          "id": "product",
+          "label": "Product"
+        },
+        {
+          "type": "text",
+          "id": "custom_title",
+          "label": "Custom title (if no product)"
+        }
+      ]
+    }
+  ],
+  "presets": [ { "name": "Clothing Rack" } ],
+  "max_blocks": 20
+}
+{% endschema %}
