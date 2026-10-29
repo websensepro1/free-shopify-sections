@@ -1,0 +1,1434 @@
+{% comment %}
+  ============================================================================
+  Luxury 3D Scroll Showcase  —  luxury-3d-scroll-showcase.liquid
+  ----------------------------------------------------------------------------
+  Draggable / swipeable 3D orbit carousel for luxury products. Transparent
+  product cutouts sit on an elliptical orbit (CSS 3D transforms: translate3d /
+  rotateY / scale) driven by a spring-based motion engine that loops endlessly
+  in both directions. The mouse wheel rotates the orbit ONLY while the cursor
+  is inside the 3D area; everywhere else the page scrolls normally.
+  Optional auto-slide, smoke, reflection floor and gold dust.
+
+  Notes
+  - Use transparent PNG/WebP cutouts cropped tightly at the bottom edge so the
+    product "stands" on the pedestal and the reflection lines up.
+  - GSAP 3 is used only for the title/description text reveal. It is loaded
+    from a CDN only if the theme has not already defined it; if it cannot be
+    loaded the section still works, just without the text animation.
+  ============================================================================
+{% endcomment %}
+
+{%- assign s = section.settings -%}
+{%- assign slides = section.blocks | where: 'type', 'product_slide' -%}
+{%- assign total = slides.size -%}
+
+{%- assign c_accent = s.accent_color | default: '#c9a45c' -%}
+{%- assign c_text = s.text_color | default: '#f5f1e8' -%}
+{%- assign c_bg_top = s.bg_color_top | default: '#101012' -%}
+{%- assign c_bg_bottom = s.bg_color_bottom | default: '#040405' -%}
+{%- assign c_spot = s.spotlight_color | default: '#b8893a' -%}
+
+<style>
+  {{ s.heading_font | font_face: font_display: 'swap' }}
+  {{ s.body_font | font_face: font_display: 'swap' }}
+
+  /* ------------------------------------------------------------------ */
+  /* Root + CSS variables (scoped to this section instance)             */
+  /* ------------------------------------------------------------------ */
+  #l3d-{{ section.id }} {
+    --l3d-font-heading: {{ s.heading_font.family }}, {{ s.heading_font.fallback_families }};
+    --l3d-font-body: {{ s.body_font.family }}, {{ s.body_font.fallback_families }};
+    --l3d-title-size: {{ s.heading_size }}px;
+    --l3d-body-size: {{ s.body_size }}px;
+    --l3d-tracking: {{ s.title_tracking | divided_by: 100.0 }}em;
+    --l3d-accent: {{ c_accent }};
+    --l3d-accent-30: {{ c_accent | color_modify: 'alpha', 0.3 }};
+    --l3d-accent-60: {{ c_accent | color_modify: 'alpha', 0.6 }};
+    --l3d-text: {{ c_text }};
+    --l3d-text-72: {{ c_text | color_modify: 'alpha', 0.72 }};
+    --l3d-text-12: {{ c_text | color_modify: 'alpha', 0.12 }};
+    --l3d-bg-top: {{ c_bg_top }};
+    --l3d-bg-bottom: {{ c_bg_bottom }};
+    --l3d-spot: {{ c_spot }};
+    --l3d-spot-60: {{ c_spot | color_modify: 'alpha', 0.6 }};
+    --l3d-spot-i: {{ s.spotlight_intensity }};
+    --l3d-reflect: {{ s.reflection_intensity | divided_by: 100.0 }};
+    --l3d-smoke-i: {{ s.smoke_intensity | divided_by: 100.0 }};
+    --l3d-drop: {{ s.bottle_drop }};
+    --l3d-h: {{ s.section_height }};
+    --l3d-item-pct: {{ s.bottle_height }};
+    --l3d-floor: 19%;
+    --l3d-perspective: 1400px;
+    --l3d-pod-w: clamp(230px, 36vw, 540px);
+    --l3d-pod-eh: calc(var(--l3d-pod-w) * 0.17);
+  }
+
+  .l3d {
+    position: relative;
+    width: 100%;
+    height: calc(var(--l3d-h, 100) * 1vh);
+    height: calc(var(--l3d-h, 100) * 1svh);
+    min-height: 560px;
+    overflow: hidden;
+    isolation: isolate;
+    color: var(--l3d-text);
+    font-family: var(--l3d-font-body);
+    font-size: var(--l3d-body-size);
+    line-height: 1.6;
+    background: linear-gradient(180deg, var(--l3d-bg-top) 0%, var(--l3d-bg-bottom) 100%);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  .l3d *, .l3d *::before, .l3d *::after { box-sizing: border-box; }
+  .l3d--empty {
+    display: grid; place-items: center; text-align: center; padding: 48px 24px;
+    height: auto; min-height: 320px; color: var(--l3d-text-72);
+  }
+  .l3d__sr {
+    position: absolute !important; width: 1px; height: 1px; margin: -1px; padding: 0;
+    overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;
+  }
+
+  /* ------------------------------------------------------------------ */
+  /* Background layers                                                  */
+  /* ------------------------------------------------------------------ */
+  .l3d__bg, .l3d__bg > * { position: absolute; inset: 0; pointer-events: none; }
+  .l3d__bg { z-index: 0; }
+  .l3d__texture { background-size: cover; background-position: center; mix-blend-mode: screen; }
+  .l3d__spot {
+    background: radial-gradient(ellipse 52% 62% at 50% 40%, var(--l3d-spot) 0%, transparent 70%);
+    opacity: calc(var(--l3d-spot-i) / 100 * 0.55);
+  }
+  .l3d__beam {
+    left: 50%; right: auto; width: 62%; transform: translateX(-50%);
+    clip-path: polygon(41% 0, 59% 0, 100% 100%, 0 100%);
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.14), rgba(255, 255, 255, 0) 78%);
+    filter: blur(22px);
+    opacity: calc(var(--l3d-spot-i) / 100 * 0.6);
+  }
+  .l3d__particles { width: 100%; height: 100%; }
+  .l3d__vignette {
+    background:
+      radial-gradient(ellipse at 50% 45%, transparent 38%, rgba(0, 0, 0, 0.72) 100%),
+      linear-gradient(180deg, rgba(0, 0, 0, 0.35), transparent 22%, transparent 70%, rgba(0, 0, 0, 0.55));
+  }
+
+  /* ------------------------------------------------------------------ */
+  /* Stage layout                                                       */
+  /* ------------------------------------------------------------------ */
+  .l3d__stage {
+    position: relative; z-index: 2; height: 100%;
+    display: grid; grid-template-rows: auto minmax(0, 1fr) auto auto;
+  }
+  .l3d__head { text-align: center; padding: clamp(18px, 3.6vh, 40px) 24px 0; position: relative; z-index: 4; }
+  .l3d__eyebrow {
+    margin: 0 0 0.5em; color: var(--l3d-accent); font-size: 0.72em;
+    letter-spacing: 0.5em; text-transform: uppercase; padding-left: 0.5em;
+  }
+  .l3d__heading {
+    margin: 0; font-family: var(--l3d-font-heading); font-weight: 400;
+    font-size: clamp(15px, 1.7vw, 24px); letter-spacing: 0.32em; text-transform: uppercase;
+    padding-left: 0.32em; color: var(--l3d-text);
+  }
+
+  /* ------------------------------------------------------------------ */
+  /* 3D scene                                                           */
+  /* ------------------------------------------------------------------ */
+  .l3d__scene {
+    position: relative; z-index: 2; min-height: 0;
+    perspective: var(--l3d-perspective);
+    perspective-origin: calc(50% + var(--l3d-px, 0) * 1%) calc(40% + var(--l3d-py, 0) * 1%);
+    transition: perspective-origin 0.7s cubic-bezier(0.2, 0.7, 0.2, 1);
+    touch-action: pan-y; cursor: default;
+    -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent;
+  }
+  .l3d__scene.is-hot { cursor: grab; }
+  .l3d__scene.is-dragging { cursor: grabbing; transition: none; }
+  .l3d--single .l3d__scene.is-hot { cursor: default; }
+
+  .l3d__orbit {
+    position: absolute; inset: 0; transform-style: preserve-3d;
+    opacity: 1; transition: opacity 1s ease 0.1s;
+  }
+  .l3d.is-loading .l3d__orbit { opacity: 0; }
+
+  .l3d__item {
+    position: absolute; left: 50%; bottom: calc(var(--l3d-floor) - var(--l3d-drop, 0) * 1%);
+    height: calc(var(--l3d-item-pct) * 1%); width: max-content;
+    transform: translate(-50%, 0);
+    transform-origin: 50% 100%;
+    will-change: transform, opacity, filter;
+    pointer-events: auto; cursor: pointer;
+  }
+  .l3d__item.is-active { cursor: inherit; }
+  .l3d.is-fallback .l3d__item {
+    transition: transform 0.9s cubic-bezier(0.2, 0.7, 0.2, 1), opacity 0.9s ease, filter 0.9s ease;
+  }
+  .l3d__bottle { height: 100%; position: relative; z-index: 1; }
+  .l3d__img, .l3d__bottle svg {
+    display: block; height: 100%; width: auto; max-width: none;
+    -webkit-user-drag: none; pointer-events: none;
+    filter: drop-shadow(0 24px 28px rgba(0, 0, 0, 0.55));
+  }
+  .l3d__bottle svg { width: 60%; opacity: 0.35; }
+
+  /* Reflection (duplicate, inverted, gradient-masked) */
+  .l3d__reflection {
+    position: absolute; left: 0; top: 100%; width: 100%; height: 100%;
+    pointer-events: none; z-index: 1; opacity: var(--l3d-reflect);
+    -webkit-mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.85) 0%, rgba(0, 0, 0, 0) 34%);
+    mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.85) 0%, rgba(0, 0, 0, 0) 34%);
+  }
+  .l3d__reflection img { display: block; width: 100%; height: 100%; transform: scaleY(-1); filter: blur(1.2px); }
+  .l3d--no-reflection .l3d__reflection { display: none; }
+
+  /* Pedestal */
+  .l3d__glow {
+    position: absolute; left: 50%; bottom: calc(var(--l3d-floor) - 7%); transform: translateX(-50%);
+    width: calc(var(--l3d-pod-w) * 1.75); height: calc(var(--l3d-pod-eh) * 2.6);
+    background: radial-gradient(ellipse at center, var(--l3d-spot-60) 0%, transparent 66%);
+    filter: blur(12px); opacity: calc(var(--l3d-spot-i) / 100); pointer-events: none;
+  }
+  .l3d__podium {
+    position: absolute; left: 50%; bottom: 0; transform: translateX(-50%);
+    width: var(--l3d-pod-w); height: calc(var(--l3d-floor) + var(--l3d-pod-eh) / 2);
+    pointer-events: none;
+  }
+  .l3d__podium-body {
+    position: absolute; left: 0; right: 0; top: calc(var(--l3d-pod-eh) / 2); bottom: 0;
+    background: linear-gradient(90deg, #000 0%, #19191b 16%, #060607 48%, #1b1b1e 84%, #000 100%);
+    border-radius: 0 0 50% 50% / 0 0 var(--l3d-pod-eh) var(--l3d-pod-eh);
+    box-shadow: 0 30px 60px rgba(0, 0, 0, 0.8), inset 0 -2px 0 var(--l3d-accent-30);
+  }
+  .l3d__podium-top {
+    position: absolute; left: 0; right: 0; top: 0; height: var(--l3d-pod-eh); border-radius: 50%;
+    background: radial-gradient(ellipse at 50% 30%, #303034 0%, #0d0d0f 52%, #000 100%);
+    box-shadow:
+      inset 0 2px 1px rgba(255, 255, 255, 0.28),
+      0 0 0 1px var(--l3d-accent-30),
+      0 -4px 34px var(--l3d-accent-30);
+  }
+  .l3d--no-pedestal .l3d__podium { display: none; }
+
+  /* Smoke: procedural sprites drawn on canvas (see initSmoke) */
+  .l3d__smoke {
+    position: absolute; left: 50%; width: calc(var(--l3d-pod-w) * 1.6);
+    transform: translateX(-50%); pointer-events: none; z-index: 0;
+  }
+  .l3d__smoke--back {
+    height: 68%; bottom: calc(var(--l3d-floor) - 9.5%);
+    -webkit-mask-image: linear-gradient(to top, #000 60%, transparent 100%), linear-gradient(to right, transparent 0%, #000 15%, #000 85%, transparent 100%);
+    -webkit-mask-composite: source-in;
+    mask-image: linear-gradient(to top, #000 60%, transparent 100%), linear-gradient(to right, transparent 0%, #000 15%, #000 85%, transparent 100%);
+    mask-composite: intersect;
+  }
+  .l3d__smoke--front {
+    height: 26%; bottom: calc(var(--l3d-floor) - 7.8%); z-index: 5; opacity: 0.85;
+    -webkit-mask-image: linear-gradient(to right, transparent 0%, #000 18%, #000 82%, transparent 100%);
+    mask-image: linear-gradient(to right, transparent 0%, #000 18%, #000 82%, transparent 100%);
+  }
+
+  /* ------------------------------------------------------------------ */
+  /* Info panels                                                        */
+  /* ------------------------------------------------------------------ */
+  .l3d__info {
+    position: relative; z-index: 4; display: grid; justify-items: center;
+    padding: 0 24px; text-align: center; transition: opacity 0.8s ease 0.2s;
+  }
+  .l3d.is-loading .l3d__info { opacity: 0; }
+  .l3d__panel {
+    grid-area: 1 / 1; width: 100%; max-width: 640px;
+    display: flex; flex-direction: column; align-items: center; gap: 0.7em;
+    opacity: 0; visibility: hidden; pointer-events: none;
+    transition: opacity 0.4s ease, visibility 0s linear 0.4s;
+  }
+  .l3d__panel.is-active {
+    opacity: 1; visibility: visible; pointer-events: auto;
+    transition: opacity 0.5s ease 0.12s, visibility 0s;
+  }
+  .l3d__panel > * { margin: 0; }
+  .l3d__label {
+    color: var(--l3d-accent); font-size: 0.7em; letter-spacing: 0.45em; text-transform: uppercase; padding-left: 0.45em;
+  }
+  .l3d__title {
+    font-family: var(--l3d-font-heading); font-weight: 400; line-height: 1.08;
+    font-size: min(clamp(26px, 4.4vw, var(--l3d-title-size)), 7.2vh);
+    letter-spacing: var(--l3d-tracking); text-transform: uppercase;
+  }
+  .l3d__word { display: inline-block; overflow: hidden; vertical-align: top; padding-bottom: 0.14em; margin-bottom: -0.14em; }
+  .l3d__word-inner { display: inline-block; will-change: transform; }
+  .l3d__notes {
+    list-style: none; padding: 0; display: flex; flex-wrap: wrap; justify-content: center;
+    gap: 0.4em 1.5em; color: var(--l3d-accent); font-size: 0.74em; letter-spacing: 0.26em; text-transform: uppercase;
+  }
+  .l3d__notes li { position: relative; }
+  .l3d__notes li + li::before {
+    content: ''; position: absolute; left: -0.95em; top: 50%; width: 4px; height: 4px;
+    background: var(--l3d-accent); transform: translateY(-50%) rotate(45deg); opacity: 0.8;
+  }
+  .l3d__desc {
+    max-width: 520px; color: var(--l3d-text-72);
+    display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; line-clamp: 3; overflow: hidden;
+  }
+  .l3d__price { font-size: 0.95em; letter-spacing: 0.14em; color: var(--l3d-text); }
+  .l3d__price s { opacity: 0.5; margin-right: 0.6em; }
+  .l3d__cta-wrap { margin-top: 0.5em; }
+  .l3d__form { margin: 0; }
+  .l3d__cta {
+    position: relative; display: inline-flex; align-items: center; justify-content: center; gap: 0.9em;
+    padding: 1.1em 2.4em; border: 1px solid var(--l3d-accent); background: transparent; color: var(--l3d-accent);
+    font: inherit; font-size: 0.74em; letter-spacing: 0.32em; text-transform: uppercase; text-decoration: none;
+    cursor: pointer; overflow: hidden; isolation: isolate; transition: color 0.45s ease, opacity 0.3s;
+  }
+  .l3d__cta::before {
+    content: ''; position: absolute; inset: 0; background: var(--l3d-accent); z-index: -1;
+    transform: translateY(101%); transition: transform 0.55s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+  .l3d__cta:hover, .l3d__cta:focus-visible { color: #0a0a0a; }
+  .l3d__cta:hover::before, .l3d__cta:focus-visible::before { transform: none; }
+  .l3d__cta[disabled] { opacity: 0.45; cursor: not-allowed; }
+  .l3d__cta.is-loading { opacity: 0.7; pointer-events: none; }
+
+  /* ------------------------------------------------------------------ */
+  /* Navigation                                                         */
+  /* ------------------------------------------------------------------ */
+  .l3d__nav {
+    position: relative; z-index: 5; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center;
+    gap: 16px; padding: clamp(14px, 2.6vh, 28px) clamp(20px, 4vw, 56px) clamp(16px, 3vh, 30px);
+  }
+  .l3d__counter { font-family: var(--l3d-font-heading); letter-spacing: 0.18em; font-size: 0.95em; color: var(--l3d-text); }
+  .l3d__counter span:last-child { color: var(--l3d-text-72); }
+  .l3d__dots { display: flex; gap: 6px; align-items: center; justify-content: center; }
+  .l3d__dot {
+    position: relative; width: 28px; height: 28px; padding: 0; border: 0; background: transparent; cursor: pointer;
+  }
+  .l3d__dot::before {
+    content: ''; position: absolute; left: 50%; top: 50%; width: 7px; height: 7px; margin: -3.5px 0 0 -3.5px;
+    border: 1px solid var(--l3d-accent); transform: rotate(45deg); transition: background 0.35s, transform 0.35s;
+  }
+  .l3d__dot[aria-current='true']::before { background: var(--l3d-accent); transform: rotate(45deg) scale(1.35); }
+  .l3d__arrows { display: flex; gap: 10px; justify-content: flex-end; }
+  .l3d__arrow {
+    width: 42px; height: 42px; display: grid; place-items: center; padding: 0;
+    border: 1px solid var(--l3d-text-12); background: transparent; color: var(--l3d-text);
+    border-radius: 50%; cursor: pointer; transition: border-color 0.3s, color 0.3s, opacity 0.3s;
+  }
+  .l3d__arrow:hover:not([disabled]) { border-color: var(--l3d-accent); color: var(--l3d-accent); }
+  .l3d__arrow[disabled] { opacity: 0.3; cursor: default; }
+  .l3d__arrow svg { width: 16px; height: 16px; }
+  .l3d__progress { position: absolute; left: 0; right: 0; bottom: 0; height: 2px; z-index: 6; background: var(--l3d-text-12); }
+  .l3d__progress-bar {
+    display: block; height: 100%; width: 100%; background: var(--l3d-accent);
+    transform-origin: 0 50%; transform: scaleX(0); will-change: transform;
+    transition: transform 0.6s cubic-bezier(0.2, 0.7, 0.2, 1);
+  }
+  .l3d button:focus-visible, .l3d a:focus-visible { outline: 1px solid var(--l3d-accent); outline-offset: 4px; }
+
+  /* ------------------------------------------------------------------ */
+  /* Responsive                                                         */
+  /* ------------------------------------------------------------------ */
+  @media (max-width: 749px) {
+    #l3d-{{ section.id }} {
+      --l3d-perspective: 900px;
+      --l3d-item-pct: {{ s.bottle_height | times: 0.9 }};
+      --l3d-floor: 17%;
+      --l3d-pod-w: clamp(190px, 62vw, 320px);
+    }
+    .l3d { min-height: 600px; }
+    .l3d__nav { grid-template-columns: auto 1fr; padding-inline: 20px; padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px)); }
+    .l3d__dot { width: 24px; }
+    .l3d__arrows { display: none; }
+    .l3d__dots { justify-content: flex-end; }
+    .l3d__desc { -webkit-line-clamp: 2; line-clamp: 2; font-size: 0.94em; }
+    .l3d__panel { gap: 0.5em; }
+    .l3d__notes { letter-spacing: 0.18em; gap: 0.3em 1.1em; }
+    .l3d__cta { padding: 1em 1.9em; }
+    .l3d__head { padding-top: 16px; }
+  }
+  @media (max-height: 720px) and (min-width: 750px) {
+    .l3d__desc { -webkit-line-clamp: 2; line-clamp: 2; }
+  }
+  @media (max-height: 560px) {
+    .l3d { min-height: 480px; }
+    .l3d__desc, .l3d__head { display: none; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .l3d__smoke { display: none; }
+    .l3d__scene, .l3d__orbit, .l3d__info { transition: none; }
+  }
+</style>
+
+<noscript>
+  <style>
+    .l3d.is-loading .l3d__orbit, .l3d.is-loading .l3d__info { opacity: 1; }
+  </style>
+</noscript>
+
+{%- if total == 0 -%}
+  <div class="l3d l3d--empty" id="l3d-{{ section.id }}">
+    <p>Add <strong>Product slide</strong> blocks to this section to build your 3D showcase.</p>
+  </div>
+{%- else -%}
+
+<section
+  id="l3d-{{ section.id }}"
+  class="l3d is-loading{% unless s.show_reflection %} l3d--no-reflection{% endunless %}{% unless s.show_pedestal %} l3d--no-pedestal{% endunless %}{% if total == 1 %} l3d--single{% endif %}"
+  data-l3d
+  data-duration="{{ s.rotation_duration }}"
+  data-wheel="{{ s.enable_wheel }}"
+  data-autoplay="{{ s.enable_autoplay }}"
+  data-autoplay-ms="{{ s.autoplay_interval | times: 1000 }}"
+  data-autoplay-hover="{{ s.autoplay_pause_hover }}"
+  data-active-scale="{{ s.active_scale }}"
+  data-back-scale="{{ s.back_scale }}"
+  data-drag="{{ s.enable_drag }}"
+  data-particles="{{ s.show_particles }}"
+  data-smoke-intensity="{{ s.smoke_intensity }}"
+  data-particle-color="{{ s.particle_color | default: c_accent }}"
+  data-added-label="{{ s.added_label | escape }}"
+  data-add-url="{{ routes.cart_add_url }}.js"
+  aria-roledescription="carousel"
+  aria-label="{{ s.heading | default: 'Product showcase' | escape }}"
+  tabindex="-1"
+>
+  <div class="l3d__bg" aria-hidden="true">
+    {%- if s.background_texture -%}
+      <div class="l3d__texture" style="background-image:url({{ s.background_texture | image_url: width: 1800 }});opacity:{{ s.texture_opacity | divided_by: 100.0 }}"></div>
+    {%- endif -%}
+    <div class="l3d__spot"></div>
+    <div class="l3d__beam"></div>
+    {%- if s.show_particles -%}<canvas class="l3d__particles" data-l3d-particles></canvas>{%- endif -%}
+    <div class="l3d__vignette"></div>
+  </div>
+
+  <div class="l3d__stage">
+    <header class="l3d__head">
+      {%- if s.eyebrow != blank -%}<p class="l3d__eyebrow">{{ s.eyebrow | escape }}</p>{%- endif -%}
+      {%- if s.heading != blank -%}<h2 class="l3d__heading">{{ s.heading | escape }}</h2>{%- endif -%}
+    </header>
+
+    <div class="l3d__scene" data-l3d-scene>
+      <div class="l3d__glow" aria-hidden="true"></div>
+      <div class="l3d__podium" aria-hidden="true">
+        <div class="l3d__podium-body"></div>
+        <div class="l3d__podium-top"></div>
+      </div>
+
+      {%- if s.show_smoke -%}
+        <canvas class="l3d__smoke l3d__smoke--back" data-l3d-smoke="back" aria-hidden="true"></canvas>
+      {%- endif -%}
+
+      <div class="l3d__orbit" data-l3d-orbit>
+        {%- for block in slides -%}
+          {%- assign product = block.settings.product -%}
+          {%- assign title = block.settings.custom_title | default: product.title -%}
+          {%- assign img = block.settings.cutout_image | default: product.featured_image -%}
+          <div
+            class="l3d__item{% if forloop.first %} is-active{% endif %}"
+            data-l3d-item
+            data-block-id="{{ block.id }}"
+            role="group"
+            aria-roledescription="slide"
+            aria-label="{{ forloop.index }} / {{ total }}"
+            {{ block.shopify_attributes }}
+          >
+            <div class="l3d__bottle">
+              {%- if img -%}
+                <img
+                  class="l3d__img"
+                  src="{{ img | image_url: width: 1000 }}"
+                  srcset="{{ img | image_url: width: 480 }} 480w, {{ img | image_url: width: 720 }} 720w, {{ img | image_url: width: 1000 }} 1000w, {{ img | image_url: width: 1400 }} 1400w"
+                  sizes="(max-width: 749px) 60vw, 34vw"
+                  width="{{ img.width }}" height="{{ img.height }}"
+                  alt="{{ img.alt | default: title | escape }}"
+                  {% if forloop.index <= 3 %}loading="eager"{% else %}loading="lazy"{% endif %}
+                  {% if forloop.first %}fetchpriority="high"{% endif %}
+                  decoding="async" draggable="false"
+                >
+              {%- else -%}
+                {{ 'product-1' | placeholder_svg_tag }}
+              {%- endif -%}
+            </div>
+
+            {%- if img -%}
+              <div class="l3d__reflection" aria-hidden="true">
+                <img
+                  src="{{ img | image_url: width: 720 }}"
+                  width="{{ img.width }}" height="{{ img.height }}"
+                  alt="" loading="lazy" decoding="async" draggable="false"
+                >
+              </div>
+            {%- endif -%}
+          </div>
+        {%- endfor -%}
+      </div>
+
+      {%- if s.show_smoke -%}
+        <canvas class="l3d__smoke l3d__smoke--front" data-l3d-smoke="front" aria-hidden="true"></canvas>
+      {%- endif -%}
+    </div>
+
+    <div class="l3d__info" data-l3d-info>
+      {%- for block in slides -%}
+        {%- assign product = block.settings.product -%}
+        {%- assign title = block.settings.custom_title | default: product.title -%}
+        {%- assign notes = block.settings.notes -%}
+        {%- assign desc = block.settings.custom_description -%}
+        {%- if desc == blank and product != blank -%}
+          {%- assign desc = product.description | strip_html | truncatewords: 34 -%}
+        {%- endif -%}
+        {%- assign cta_label = block.settings.cta_label -%}
+        {%- assign cta_url = block.settings.cta_link | default: product.url | default: '#' -%}
+        {%- assign variant = product.selected_or_first_available_variant -%}
+
+        <article class="l3d__panel{% if forloop.first %} is-active{% endif %}" data-l3d-panel data-index="{{ forloop.index0 }}">
+          {%- if s.show_label and block.settings.label != blank -%}
+            <p class="l3d__label" data-reveal>{{ block.settings.label | escape }}</p>
+          {%- endif -%}
+
+          {%- if title != blank -%}
+            {%- if s.show_title -%}
+              <h3 class="l3d__title" data-split>{{ title | escape }}</h3>
+            {%- else -%}
+              <h3 class="l3d__sr">{{ title | escape }}</h3>
+            {%- endif -%}
+          {%- endif -%}
+
+          {%- if notes != blank -%}
+            {%- assign note_list = notes | split: ',' -%}
+            <ul class="l3d__notes" aria-label="Notes">
+              {%- for note in note_list -%}
+                {%- assign clean_note = note | strip -%}
+                {%- if clean_note != blank -%}<li data-reveal>{{ clean_note | escape }}</li>{%- endif -%}
+              {%- endfor -%}
+            </ul>
+          {%- endif -%}
+
+          {%- if desc != blank -%}
+            <p class="l3d__desc" data-split data-split-stagger="0.012">{{ desc | strip_newlines | escape }}</p>
+          {%- endif -%}
+
+          {%- if s.show_price and product != blank -%}
+            <p class="l3d__price" data-reveal>
+              {%- if product.compare_at_price > product.price -%}<s>{{ product.compare_at_price | money }}</s>{%- endif -%}
+              <span>{{ product.price | money }}</span>
+            </p>
+          {%- endif -%}
+
+          {%- if cta_label != blank -%}
+            <div class="l3d__cta-wrap" data-reveal>
+              {%- if block.settings.cta_action == 'add_to_cart' and product != blank -%}
+                {%- form 'product', product, class: 'l3d__form', data-l3d-atc: '' -%}
+                  <input type="hidden" name="id" value="{{ variant.id }}">
+                  <button type="submit" class="l3d__cta"{% unless variant.available %} disabled{% endunless %}>
+                    <span data-l3d-cta-label>{% if variant.available %}{{ cta_label | escape }}{% else %}{{ s.sold_out_label | escape }}{% endif %}</span>
+                  </button>
+                {%- endform -%}
+              {%- else -%}
+                <a class="l3d__cta" href="{{ cta_url }}"><span data-l3d-cta-label>{{ cta_label | escape }}</span></a>
+              {%- endif -%}
+            </div>
+          {%- endif -%}
+        </article>
+      {%- endfor -%}
+    </div>
+
+    <nav class="l3d__nav" aria-label="Showcase navigation">
+      <div class="l3d__counter" aria-hidden="true">
+        <span data-l3d-current>01</span><span> / {% if total < 10 %}0{% endif %}{{ total }}</span>
+      </div>
+      <div class="l3d__dots">
+        {%- for block in slides -%}
+          <button type="button" class="l3d__dot" data-l3d-dot data-index="{{ forloop.index0 }}"
+            aria-label="Go to slide {{ forloop.index }}"{% if forloop.first %} aria-current="true"{% else %} aria-current="false"{% endif %}></button>
+        {%- endfor -%}
+      </div>
+      <div class="l3d__arrows">
+        <button type="button" class="l3d__arrow" data-l3d-prev aria-label="Previous product">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2" aria-hidden="true"><path d="M10 3 5 8l5 5"/></svg>
+        </button>
+        <button type="button" class="l3d__arrow" data-l3d-next aria-label="Next product">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2" aria-hidden="true"><path d="m6 3 5 5-5 5"/></svg>
+        </button>
+      </div>
+    </nav>
+  </div>
+
+  {%- if s.show_progress -%}
+    <div class="l3d__progress" aria-hidden="true"><span class="l3d__progress-bar" data-l3d-progress></span></div>
+  {%- endif -%}
+</section>
+
+<script>
+(function () {
+  'use strict';
+
+  var SECTION_ID = {{ section.id | json }};
+  var ROOT_ID = 'l3d-' + SECTION_ID;
+  var GSAP_URLS = [
+    'https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js',
+    'https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js'
+  ];
+  var TAU = Math.PI * 2;
+
+  window.__L3D = window.__L3D || {};
+
+  /* ----------------------------------------------------------------- */
+  /* Helpers                                                           */
+  /* ----------------------------------------------------------------- */
+  function clamp(v, a, b) { return Math.min(b, Math.max(a, v)); }
+  function smooth(t) { t = clamp(t, 0, 1); return t * t * (3 - 2 * t); }
+  function pad(n) { return (n < 10 ? '0' : '') + n; }
+
+  function loadScript(src) {
+    return new Promise(function (resolve, reject) {
+      var existing = document.querySelector('script[src="' + src + '"]');
+      if (existing) {
+        if (existing.getAttribute('data-l3d-loaded')) return resolve();
+        existing.addEventListener('load', function () { resolve(); });
+        existing.addEventListener('error', reject);
+        return;
+      }
+      var el = document.createElement('script');
+      el.src = src; el.async = true;
+      el.onload = function () { el.setAttribute('data-l3d-loaded', '1'); resolve(); };
+      el.onerror = function () { el.remove(); reject(new Error('Failed to load ' + src)); };
+      document.head.appendChild(el);
+    });
+  }
+  function loadAny(urls) {
+    return urls.reduce(function (p, url) {
+      return p.catch(function () { return loadScript(url); });
+    }, Promise.reject());
+  }
+  function ensureGsap() {
+    if (window.__l3dGsapPromise) return window.__l3dGsapPromise;
+    window.__l3dGsapPromise = (window.gsap ? Promise.resolve() : loadAny(GSAP_URLS))
+      .then(function () { return true; })
+      .catch(function (err) {
+        window.__l3dGsapPromise = null;
+        throw err;
+      });
+    return window.__l3dGsapPromise;
+  }
+
+  function splitWords(el) {
+    var text = (el.textContent || '').replace(/\s+/g, ' ').trim();
+    if (!text) return;
+    el.textContent = '';
+    var sr = document.createElement('span');
+    sr.className = 'l3d__sr';
+    sr.textContent = text;
+    el.appendChild(sr);
+    var words = text.split(' ');
+    words.forEach(function (w, i) {
+      var mask = document.createElement('span');
+      mask.className = 'l3d__word';
+      mask.setAttribute('aria-hidden', 'true');
+      var inner = document.createElement('span');
+      inner.className = 'l3d__word-inner';
+      inner.textContent = w;
+      mask.appendChild(inner);
+      el.appendChild(mask);
+      if (i < words.length - 1) el.appendChild(document.createTextNode(' '));
+    });
+  }
+
+  /* ----------------------------------------------------------------- */
+  /* Instance                                                          */
+  /* ----------------------------------------------------------------- */
+  function create(root, hasGsap) {
+    var gsap = hasGsap ? window.gsap : null;
+
+    var scene = root.querySelector('[data-l3d-scene]');
+    var items = [].slice.call(root.querySelectorAll('[data-l3d-item]'));
+    var panels = [].slice.call(root.querySelectorAll('[data-l3d-panel]'));
+    var dots = [].slice.call(root.querySelectorAll('[data-l3d-dot]'));
+    var counterEl = root.querySelector('[data-l3d-current]');
+    var progressEl = root.querySelector('[data-l3d-progress]');
+    var prevBtn = root.querySelector('[data-l3d-prev]');
+    var nextBtn = root.querySelector('[data-l3d-next]');
+    var n = items.length;
+    if (!n || !scene) return null;
+
+    var mqMobile = window.matchMedia('(max-width: 749px)');
+    var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    var cfg = {
+      duration: parseFloat(root.dataset.duration) || 1,
+      wheel: root.dataset.wheel === 'true',
+      auto: root.dataset.autoplay === 'true',
+      autoMs: parseFloat(root.dataset.autoplayMs) || 4000,
+      autoHover: root.dataset.autoplayHover === 'true',
+      activeScale: parseFloat(root.dataset.activeScale) || 1.2,
+      backScale: parseFloat(root.dataset.backScale) || 0.55,
+      drag: root.dataset.drag === 'true',
+      particles: root.dataset.particles === 'true',
+      particleColor: root.dataset.particleColor || '#c9a45c'
+    };
+
+    var state = { pos: 0, vel: 0, active: -1, w: 0, h: 0, rx: 0, depth: 900 };
+    var listeners = [];
+    var cur = 0, tgt = 0, vel = 0, raf = 0, lastT = 0, gStart = 0, wheelPending = false, wheelTimer = 0, autoTimer = 0, hovering = false;
+    var drag = null, suppressClick = false, tiltRaf = 0;
+    var ro = null, io = null, pRaf = 0, destroyed = false;
+
+    function on(target, type, fn, opts) {
+      target.addEventListener(type, fn, opts);
+      listeners.push([target, type, fn, opts]);
+    }
+
+
+    /* ---------------- Layout + render ---------------- */
+    function layout() {
+      var r = scene.getBoundingClientRect();
+      var mobile = mqMobile.matches;
+      state.w = r.width; state.h = r.height;
+      state.rx = Math.min(state.w * 0.34, mobile ? 210 : 560);
+      state.depth = mobile ? 650 : 900;
+    }
+
+    function render(pos) {
+      state.pos = pos;
+      var step = Math.max(TAU / n, 0.7);
+      var mobile = mqMobile.matches;
+      for (var i = 0; i < n; i++) {
+        var d = i - pos;
+        d = d - n * Math.round(d / n);               // wrap to [-n/2, n/2]
+        var a = clamp(d * step, -Math.PI, Math.PI);
+        var sn = Math.sin(a), cs = Math.cos(a);
+        var t = (cs + 1) / 2;                        // 1 = front, 0 = back
+        var f = smooth(1 - Math.min(Math.abs(d), 1)); // focus factor
+
+        var x = sn * state.rx;
+        var z = (cs - 1) / 2 * state.depth;
+        var ry = -sn * 38;
+        var sc = (cfg.backScale + (1 - cfg.backScale) * t) * (1 + (cfg.activeScale - 1) * f);
+        var op = 0.4 + 0.6 * Math.pow(t, 1.2);
+        var blur = (mobile ? 3 : 4) * (1 - Math.pow(t, 1.4));
+        var br = 0.6 + 0.55 * Math.pow(t, 1.6);
+        if (n > 9) op *= 1 - smooth((Math.abs(a) - Math.PI * 0.8) / (Math.PI * 0.2));
+
+        var el = items[i];
+        el.style.transform = 'translate(-50%,0) translate3d(' + x.toFixed(2) + 'px,0,' + z.toFixed(2) + 'px) rotateY(' + ry.toFixed(2) + 'deg) scale(' + sc.toFixed(4) + ')';
+        el.style.opacity = op.toFixed(3);
+        el.style.filter = (blur > 0.05 ? 'blur(' + blur.toFixed(2) + 'px) ' : '') + 'brightness(' + br.toFixed(3) + ')';
+        el.style.zIndex = String(Math.round(t * 100));
+        el.style.pointerEvents = op < 0.05 ? 'none' : '';
+        el.style.setProperty('--l3d-d', d.toFixed(3));
+      }
+      var idx = wrap(Math.round(pos));
+      if (idx !== state.active && Math.abs(state.vel) < 2.5) setActive(idx);
+      if (progressEl && n > 1) progressEl.style.transform = 'scaleX(' + (Math.max(state.active + 1, 0) / n).toFixed(4) + ')';
+    }
+
+    /* ---------------- Active content ---------------- */
+    function setActive(i) {
+      var first = state.active === -1;
+      state.active = i;
+      panels.forEach(function (p, k) { p.classList.toggle('is-active', k === i); });
+      items.forEach(function (el, k) { el.classList.toggle('is-active', k === i); });
+      dots.forEach(function (d, k) { d.setAttribute('aria-current', k === i ? 'true' : 'false'); });
+      if (counterEl) counterEl.textContent = pad(i + 1);
+      animateIn(panels[i], first ? 0.25 : 0);
+    }
+
+    function animateIn(panel, delay) {
+      if (!gsap || reduce || !panel) return;
+      var splits = [].slice.call(panel.querySelectorAll('[data-split]'));
+      var reveals = [].slice.call(panel.querySelectorAll('[data-reveal]'));
+      var tl = 0;
+      splits.forEach(function (el, k) {
+        var words = [].slice.call(el.querySelectorAll('.l3d__word-inner'));
+        if (!words.length) return;
+        var stagger = parseFloat(el.getAttribute('data-split-stagger')) || 0.045;
+        gsap.fromTo(words, { yPercent: 118 }, {
+          yPercent: 0, duration: 1, ease: 'power4.out', stagger: stagger,
+          delay: delay + 0.08 + k * 0.14, overwrite: true
+        });
+      });
+      if (reveals.length) {
+        gsap.fromTo(reveals, { y: 18, autoAlpha: 0 }, {
+          y: 0, autoAlpha: 1, duration: 0.9, ease: 'power3.out', stagger: 0.08,
+          delay: delay + 0.2, overwrite: true
+        });
+      }
+    }
+
+    /* ---------------- Motion engine: critically-damped spring, loops forever ---------------- */
+    function wrap(i) { return ((i % n) + n) % n; }
+    function nearest(i) { var d = i - wrap(cur); d -= n * Math.round(d / n); return cur + d; }
+
+    function loop(now) {
+      raf = 0;
+      var dt = Math.min((now - lastT) / 1000, 0.05);
+      lastT = now;
+      if (dt > 0) {
+        var w = 6 / cfg.duration, h = dt / 2;
+        for (var k = 0; k < 2; k++) {
+          vel += (w * w * (tgt - state.pos) - 2 * w * vel) * h;
+          state.pos += vel * h;
+        }
+      }
+      state.vel = vel;
+      if (Math.abs(tgt - state.pos) < 0.0008 && Math.abs(vel) < 0.004 && !wheelPending && !drag) {
+        var shift = n * Math.floor(tgt / n);   // keep numbers small; the orbit is periodic
+        tgt -= shift; cur -= shift; gStart -= shift;
+        state.pos = tgt; vel = 0; state.vel = 0;
+        render(state.pos);
+        return;
+      }
+      render(state.pos);
+      raf = requestAnimationFrame(loop);
+    }
+    function kick() {
+      if (!raf) { lastT = performance.now(); raf = requestAnimationFrame(loop); }
+    }
+    function moveTo(i, instant) {
+      i = Math.round(i);
+      cur = i; tgt = i;
+      if (reduce || instant) { state.pos = i; vel = 0; state.vel = 0; render(i); }
+      else kick();
+    }
+
+    /* ---------------- Auto-slide ---------------- */
+    function autoSchedule() {
+      clearTimeout(autoTimer);
+      if (!cfg.auto || n < 2 || reduce) return;
+      autoTimer = setTimeout(autoTick, cfg.autoMs);
+    }
+    function autoTick() {
+      if (destroyed) return;
+      var busy = drag || wheelPending || document.hidden ||
+        root.classList.contains('is-offscreen') || (cfg.autoHover && hovering);
+      if (!busy) moveTo(cur + 1);
+      autoSchedule();
+    }
+    function bump() { if (cfg.auto) autoSchedule(); }   // user interacted: restart the wait
+
+    function goTo(i) { bump(); moveTo(nearest(i)); }
+    function step(dir) { bump(); moveTo(cur + dir); }
+
+    /* ---------------- Interaction zone (ellipse around the 3D area) ---------------- */
+    function inZone(x, y) {
+      var r = scene.getBoundingClientRect();
+      var mobile = mqMobile.matches;
+      var cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+      var erx = mobile ? r.width * 0.5 : Math.min(r.width * 0.34, 620);
+      var ery = r.height * (mobile ? 0.62 : 0.6);
+      var dx = (x - cx) / erx, dy = (y - cy) / ery;
+      return dx * dx + dy * dy <= 1;
+    }
+
+    function onHover(e) {
+      if (e.pointerType !== 'mouse' || drag || n < 2) return;
+      hovering = inZone(e.clientX, e.clientY);
+      scene.classList.toggle('is-hot', hovering);
+    }
+
+    /* Wheel: continuous rotation, endless in both directions, only inside the zone.
+       Outside the zone the page scrolls natively. When the wheel stops it settles on a product. */
+    var WHEEL_PX = 400;   // wheel pixels for one full product
+    function endWheel() {
+      wheelPending = false;
+      var base = Math.round(gStart), fin = Math.round(tgt);
+      if (fin === base && Math.abs(tgt - gStart) > 0.05) fin = base + (tgt > gStart ? 1 : -1);
+      bump();
+      moveTo(fin);
+    }
+    function onWheel(e) {
+      if (n < 2 || e.ctrlKey || !inZone(e.clientX, e.clientY)) return;
+      var dy = Math.abs(e.deltaY) >= Math.abs(e.deltaX) ? e.deltaY : e.deltaX;
+      if (!dy) return;
+      if (e.deltaMode === 1) dy *= 32; else if (e.deltaMode === 2) dy *= window.innerHeight;
+      e.preventDefault();
+      bump();
+      if (!wheelPending) { wheelPending = true; gStart = tgt; }
+      tgt += dy / WHEEL_PX;
+      cur = Math.round(tgt);
+      if (!reduce) kick();
+      clearTimeout(wheelTimer);
+      wheelTimer = setTimeout(endWheel, 150);
+    }
+
+    /* ---------------- Drag / swipe ---------------- */
+    function onDown(e) {
+      if (!cfg.drag || n < 2) return;
+      if (e.pointerType === 'mouse' && (e.button !== 0 || !inZone(e.clientX, e.clientY))) return;
+      bump();
+      tgt = state.pos; vel = 0; state.vel = 0; cur = Math.round(tgt);
+      drag = { x: e.clientX, start: state.pos, moved: false, dx: 0 };
+    }
+    function onMove(e) {
+      if (drag) {
+        var dx = e.clientX - drag.x;
+        drag.dx = dx;
+        if (!drag.moved) {
+          if (Math.abs(dx) < 5) return;
+          drag.moved = true;
+          scene.classList.add('is-dragging');
+          try { scene.setPointerCapture(e.pointerId); } catch (err) { /* noop */ }
+        }
+        var unit = Math.max(state.w * 0.3, 160);
+        var p = drag.start - dx / unit;
+        tgt = p; cur = Math.round(p); vel = 0; state.vel = 0;
+        render(p);
+        return;
+      }
+      if (e.pointerType === 'mouse' && !tiltRaf) {
+        var cx = e.clientX, cy = e.clientY;
+        tiltRaf = requestAnimationFrame(function () {
+          tiltRaf = 0;
+          var r = scene.getBoundingClientRect();
+          scene.style.setProperty('--l3d-px', (((cx - r.left) / r.width - 0.5) * -8).toFixed(2));
+          scene.style.setProperty('--l3d-py', (((cy - r.top) / r.height - 0.5) * -6).toFixed(2));
+        });
+      }
+    }
+    function onUp() {
+      if (!drag) return;
+      var d = drag;
+      drag = null;
+      scene.classList.remove('is-dragging');
+      if (d.moved) {
+        suppressClick = true;
+        setTimeout(function () { suppressClick = false; }, 60);
+        var startIdx = Math.round(d.start), target = Math.round(state.pos);
+        if (target === startIdx && Math.abs(d.dx) > 35) target = startIdx + (d.dx < 0 ? 1 : -1);
+        bump();
+        moveTo(target);
+      }
+    }
+
+    /* ---------------- Add to cart ---------------- */
+    function onSubmit(e) {
+      var form = e.target && e.target.closest ? e.target.closest('[data-l3d-atc]') : null;
+      if (!form) return;
+      e.preventDefault();
+      var btn = form.querySelector('[type="submit"]');
+      var label = form.querySelector('[data-l3d-cta-label]');
+      if (!btn || btn.disabled) return;
+      var original = label ? label.textContent : '';
+      btn.classList.add('is-loading');
+      fetch(root.dataset.addUrl, {
+        method: 'POST',
+        headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' },
+        body: new FormData(form)
+      }).then(function (res) {
+        return res.json().then(function (json) { return { ok: res.ok, json: json }; });
+      }).then(function (res) {
+        if (!res.ok) throw new Error(res.json.description || res.json.message || 'Error');
+        if (label) label.textContent = root.dataset.addedLabel || 'Added';
+        document.dispatchEvent(new CustomEvent('cart:refresh', { bubbles: true }));
+        document.dispatchEvent(new CustomEvent('cart:updated', { bubbles: true, detail: res.json }));
+      }).catch(function (err) {
+        if (label) label.textContent = (err && err.message && err.message.length < 40) ? err.message : 'Try again';
+      }).then(function () {
+        btn.classList.remove('is-loading');
+        setTimeout(function () { if (label) label.textContent = original; }, 2400);
+      });
+    }
+
+    /* ---------------- Particles ---------------- */
+    function initParticles() {
+      var canvas = root.querySelector('[data-l3d-particles]');
+      if (!canvas || !cfg.particles || reduce) return;
+      var ctx = canvas.getContext('2d');
+      if (!ctx) return;
+      var dpr = Math.min(window.devicePixelRatio || 1, 2);
+      var W = 0, H = 0, parts = [], visible = true;
+
+      function seed() {
+        var count = mqMobile.matches ? 26 : 54;
+        parts = [];
+        for (var i = 0; i < count; i++) {
+          parts.push({
+            x: Math.random() * W, y: Math.random() * H,
+            r: 0.5 + Math.random() * 1.6,
+            vx: (Math.random() - 0.5) * 0.12,
+            vy: -(0.05 + Math.random() * 0.3),
+            a: 0.25 + Math.random() * 0.6,
+            ph: Math.random() * TAU
+          });
+        }
+      }
+      function size() {
+        var r = canvas.getBoundingClientRect();
+        W = r.width; H = r.height;
+        canvas.width = Math.round(W * dpr); canvas.height = Math.round(H * dpr);
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        seed();
+      }
+      function frame(time) {
+        if (destroyed) return;
+        pRaf = requestAnimationFrame(frame);
+        if (!visible) return;
+        ctx.clearRect(0, 0, W, H);
+        ctx.fillStyle = cfg.particleColor;
+        for (var i = 0; i < parts.length; i++) {
+          var p = parts[i];
+          p.x += p.vx; p.y += p.vy;
+          if (p.y < -4) { p.y = H + 4; p.x = Math.random() * W; }
+          if (p.x < -4) p.x = W + 4; else if (p.x > W + 4) p.x = -4;
+          ctx.globalAlpha = p.a * (0.55 + 0.45 * Math.sin(time * 0.001 + p.ph));
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.r, 0, TAU);
+          ctx.fill();
+        }
+        ctx.globalAlpha = 1;
+      }
+      size();
+      if ('IntersectionObserver' in window) {
+        io = new IntersectionObserver(function (entries) { visible = entries[0].isIntersecting; });
+        io.observe(root);
+      }
+      on(window, 'resize', size);
+      pRaf = requestAnimationFrame(frame);
+    }
+
+    /* ---------------- Smoke (procedural sprites on canvas) ---------------- */
+    var smokeRaf = 0, smokeRo = null;
+    function initSmoke() {
+      var canvases = [].slice.call(root.querySelectorAll('[data-l3d-smoke]'));
+      if (!canvases.length || reduce) return;
+      var dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+      var intensity = (parseFloat(root.dataset.smokeIntensity) || 60) / 60;
+      var mobile = mqMobile.matches;
+
+      // One-time: build a wispy smoke sprite from domain-warped fractal noise
+      function makeSprite(size, seed) {
+        var tbl = new Float32Array(64 * 64), st32 = seed >>> 0;
+        function rnd() {
+          st32 = (st32 + 0x6D2B79F5) >>> 0;
+          var t = st32;
+          t = Math.imul(t ^ (t >>> 15), t | 1);
+          t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+          return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+        }
+        for (var i = 0; i < tbl.length; i++) tbl[i] = rnd();
+        function vn(x, y) {
+          var xi = Math.floor(x), yi = Math.floor(y), fx = x - xi, fy = y - yi;
+          fx = fx * fx * (3 - 2 * fx); fy = fy * fy * (3 - 2 * fy);
+          var x0 = xi & 63, x1 = (xi + 1) & 63, y0 = yi & 63, y1 = (yi + 1) & 63;
+          var a = tbl[y0 * 64 + x0], b = tbl[y0 * 64 + x1], c = tbl[y1 * 64 + x0], d = tbl[y1 * 64 + x1];
+          return a + (b - a) * fx + (c - a) * fy + (a - b - c + d) * fx * fy;
+        }
+        function fbm(x, y) {
+          var v = 0, amp = 0.5, f = 1;
+          for (var o = 0; o < 4; o++) { v += amp * vn(x * f, y * f); f *= 2.03; amp *= 0.5; }
+          return v / 0.9375;
+        }
+        var cv = document.createElement('canvas');
+        cv.width = cv.height = size;
+        var cx = cv.getContext('2d'), img = cx.createImageData(size, size), px = img.data;
+        for (var y = 0; y < size; y++) {
+          for (var x = 0; x < size; x++) {
+            var u = x / size, v = y / size;
+            var wx = fbm(u * 2.2 + 5.2, v * 2.2 + 1.3), wy = fbm(u * 2.2 + 9.7, v * 2.2 + 3.1);
+            var n = fbm(u * 4 + wx * 1.6, v * 4 + wy * 1.6);
+            var dx = u - 0.5, dy = v - 0.5, r = Math.sqrt(dx * dx + dy * dy) * 2;
+            var fall = 1 - smooth((r - 0.15) / 0.85); fall *= fall;
+            var al = clamp((n - 0.32) * 2.4, 0, 1) * fall;
+            var k = (y * size + x) * 4;
+            px[k] = 255; px[k + 1] = 246; px[k + 2] = 232; px[k + 3] = Math.round(al * 255);
+          }
+        }
+        cx.putImageData(img, 0, 0);
+        return cv;
+      }
+
+      var sprites = [makeSprite(128, 11), makeSprite(128, 47), makeSprite(128, 93)];
+
+      var systems = canvases.map(function (cv) {
+        var front = cv.getAttribute('data-l3d-smoke') === 'front';
+        return {
+          cv: cv, ctx: cv.getContext('2d'), front: front, W: 0, H: 0, base: 0, p: [],
+          pad: front ? 0.3 : 0.14,
+          count: front ? (mobile ? 4 : 7) : (mobile ? 10 : 17)
+        };
+      });
+
+      function spawn(p, sys, warm) {
+        var f = sys.front;
+        p.life = (f ? 8 : 7) + Math.random() * 5;
+        p.age = warm ? Math.random() * p.life : 0;
+        p.x0 = (Math.random() - 0.5) * sys.W * (f ? 0.6 : 0.36);
+        p.sprite = sprites[(Math.random() * sprites.length) | 0];
+        p.s0 = sys.W * (f ? 0.22 : 0.14) * (0.8 + Math.random() * 0.5);
+        p.s1 = sys.W * (f ? 0.5 : 0.42) * (0.8 + Math.random() * 0.5);
+        p.rise = sys.base * (f ? 0.55 : 0.95) * (0.75 + Math.random() * 0.35);
+        p.amp = sys.W * (0.03 + Math.random() * 0.04);
+        p.fq = 0.5 + Math.random() * 0.9;
+        p.ph = Math.random() * TAU;
+        p.rot = Math.random() * TAU;
+        p.vr = (Math.random() - 0.5) * 0.35;
+        p.peak = (f ? 0.16 : 0.2) + Math.random() * 0.14;
+      }
+
+      function sizeAll() {
+        systems.forEach(function (sys) {
+          var r = sys.cv.getBoundingClientRect();
+          if (!r.width || !r.height) return;
+          sys.W = r.width; sys.H = r.height; sys.base = r.height * (1 - sys.pad);
+          sys.cv.width = Math.round(r.width * dpr);
+          sys.cv.height = Math.round(r.height * dpr);
+          sys.p = [];
+          for (var i = 0; i < sys.count; i++) { var p = {}; spawn(p, sys, true); sys.p.push(p); }
+        });
+      }
+
+      var last = 0;
+      function frame(now) {
+        if (destroyed) return;
+        smokeRaf = requestAnimationFrame(frame);
+        var dt = Math.min((now - last) / 1000, 0.05);
+        last = now;
+        if (root.classList.contains('is-offscreen') || document.hidden) return;
+        for (var si = 0; si < systems.length; si++) {
+          var sys = systems[si], ctx = sys.ctx;
+          if (!sys.W) continue;
+          ctx.setTransform(1, 0, 0, 1, 0, 0);
+          ctx.clearRect(0, 0, sys.cv.width, sys.cv.height);
+          for (var i = 0; i < sys.p.length; i++) {
+            var p = sys.p[i];
+            p.age += dt;
+            if (p.age >= p.life) spawn(p, sys, false);
+            var t = p.age / p.life;
+            var e = 1 - Math.pow(1 - t, 1.6);
+            var s = p.s0 + (p.s1 - p.s0) * Math.sqrt(t);
+            var x = sys.W / 2 + p.x0 + Math.sin(p.age * p.fq + p.ph) * p.amp * (0.3 + t) + t * sys.W * 0.03;
+            var y = sys.base - e * p.rise;
+            var a = p.peak * intensity * smooth(t / 0.18) * (1 - smooth((t - 0.45) / 0.55));
+            if (a <= 0.003) continue;
+            ctx.globalAlpha = Math.min(a, 0.9);
+            p.rot += p.vr * dt;
+            if (sys.front) {
+              ctx.setTransform(s * dpr, 0, 0, s * 0.42 * dpr, x * dpr, y * dpr);
+            } else {
+              var cs = Math.cos(p.rot) * s * dpr, sn = Math.sin(p.rot) * s * dpr;
+              ctx.setTransform(cs, sn, -sn, cs, x * dpr, y * dpr);
+            }
+            ctx.drawImage(p.sprite, -0.5, -0.5, 1, 1);
+          }
+        }
+      }
+
+      sizeAll();
+      if ('ResizeObserver' in window) {
+        smokeRo = new ResizeObserver(sizeAll);
+        canvases.forEach(function (c) { smokeRo.observe(c); });
+      } else {
+        on(window, 'resize', sizeAll);
+      }
+      smokeRaf = requestAnimationFrame(frame);
+    }
+
+    /* ---------------- Boot ---------------- */
+    layout();
+
+    if (gsap && !reduce) {
+      [].forEach.call(root.querySelectorAll('[data-split]'), splitWords);
+    }
+
+    render(0);
+
+    // Interactions
+    dots.forEach(function (d) { on(d, 'click', function () { goTo(parseInt(d.dataset.index, 10)); }); });
+    if (prevBtn) on(prevBtn, 'click', function () { step(-1); });
+    if (nextBtn) on(nextBtn, 'click', function () { step(1); });
+    items.forEach(function (el, i) {
+      on(el, 'click', function () { if (!suppressClick && i !== state.active) goTo(i); });
+    });
+    on(root, 'keydown', function (e) {
+      if (e.key === 'ArrowRight') { e.preventDefault(); step(1); }
+      else if (e.key === 'ArrowLeft') { e.preventDefault(); step(-1); }
+    });
+    on(scene, 'pointerdown', onDown);
+    on(window, 'pointermove', onMove, { passive: true });
+    on(window, 'pointerup', onUp);
+    on(window, 'pointercancel', onUp);
+    on(scene, 'click', function (e) {
+      if (suppressClick) { e.preventDefault(); e.stopPropagation(); }
+    }, true);
+    on(scene, 'dragstart', function (e) { e.preventDefault(); });
+    if (cfg.wheel) on(scene, 'wheel', onWheel, { passive: false });
+    on(scene, 'pointermove', onHover, { passive: true });
+    on(scene, 'pointerleave', function () { hovering = false; scene.classList.remove('is-hot'); });
+    on(root, 'submit', onSubmit);
+
+    if ('ResizeObserver' in window) {
+      ro = new ResizeObserver(function () { layout(); render(state.pos); });
+      ro.observe(scene);
+    } else {
+      on(window, 'resize', function () { layout(); render(state.pos); });
+    }
+    if (mqMobile.addEventListener) {
+      on(mqMobile, 'change', function () { layout(); render(state.pos); });
+    }
+
+    initParticles();
+    initSmoke();
+
+    var io2 = null;
+    if ('IntersectionObserver' in window) {
+      io2 = new IntersectionObserver(function (entries) {
+        root.classList.toggle('is-offscreen', !entries[0].isIntersecting);
+      });
+      io2.observe(root);
+    }
+
+    autoSchedule();
+
+    root.classList.remove('is-loading');
+    root.classList.add('is-ready');
+
+    return {
+      goTo: goTo,
+      items: items,
+      destroy: function () {
+        destroyed = true;
+        listeners.forEach(function (l) { l[0].removeEventListener(l[1], l[2], l[3]); });
+        listeners = [];
+        clearTimeout(wheelTimer); clearTimeout(autoTimer);
+        if (raf) cancelAnimationFrame(raf);
+        if (tiltRaf) cancelAnimationFrame(tiltRaf);
+        if (pRaf) cancelAnimationFrame(pRaf);
+        if (smokeRaf) cancelAnimationFrame(smokeRaf);
+        if (smokeRo) smokeRo.disconnect();
+        if (ro) ro.disconnect();
+        if (io) io.disconnect();
+        if (io2) io2.disconnect();
+        if (gsap) {
+          gsap.killTweensOf(state);
+          [].forEach.call(root.querySelectorAll('.l3d__word-inner, [data-reveal]'), function (el) { gsap.killTweensOf(el); });
+        }
+      }
+    };
+  }
+
+  /* ----------------------------------------------------------------- */
+  /* Lifecycle + Shopify theme editor                                  */
+  /* ----------------------------------------------------------------- */
+  function teardown() {
+    var inst = window.__L3D[SECTION_ID];
+    if (inst) { inst.destroy(); delete window.__L3D[SECTION_ID]; }
+  }
+
+  function boot() {
+    teardown();
+    var root = document.getElementById(ROOT_ID);
+    if (!root || !root.hasAttribute('data-l3d')) return;
+    ensureGsap().then(function () { return true; }, function () { return false; }).then(function (ok) {
+      if (!document.body.contains(root)) return;
+      teardown();
+      var inst = create(root, ok);
+      if (inst) window.__L3D[SECTION_ID] = inst;
+    });
+  }
+
+  function onSectionLoad(e) {
+    if (e.detail && e.detail.sectionId === SECTION_ID) boot();
+  }
+  function onSectionUnload(e) {
+    if (e.detail && e.detail.sectionId === SECTION_ID) {
+      teardown();
+      document.removeEventListener('shopify:section:load', onSectionLoad);
+      document.removeEventListener('shopify:section:unload', onSectionUnload);
+      document.removeEventListener('shopify:block:select', onBlockSelect);
+    }
+  }
+  function onBlockSelect(e) {
+    if (!e.detail || e.detail.sectionId !== SECTION_ID) return;
+    var inst = window.__L3D[SECTION_ID];
+    if (!inst) return;
+    for (var i = 0; i < inst.items.length; i++) {
+      if (inst.items[i].getAttribute('data-block-id') === e.detail.blockId) { inst.goTo(i); break; }
+    }
+  }
+
+  document.addEventListener('shopify:section:load', onSectionLoad);
+  document.addEventListener('shopify:section:unload', onSectionUnload);
+  document.addEventListener('shopify:block:select', onBlockSelect);
+
+  boot();
+})();
+</script>
+
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "Luxury 3D Scroll Showcase",
+  "tag": "section",
+  "class": "l3d-section",
+  "max_blocks": 12,
+  "settings": [
+    { "type": "header", "content": "Interaction & layout" },
+    {
+      "type": "range", "id": "section_height", "label": "Section height (% of screen)",
+      "min": 60, "max": 100, "step": 5, "default": 100,
+      "info": "Lower this a little if your sticky header covers the bottom of the section."
+    },
+    {
+      "type": "checkbox", "id": "enable_wheel", "label": "Rotate with mouse wheel inside the 3D area", "default": true,
+      "info": "Scrolling anywhere outside the 3D area scrolls the page normally."
+    },
+    { "type": "checkbox", "id": "enable_drag", "label": "Enable drag / swipe", "default": true },
+    {
+      "type": "range", "id": "rotation_duration", "label": "Rotation smoothness (seconds)",
+      "min": 0.5, "max": 2, "step": 0.1, "default": 1,
+      "info": "Higher = slower, floatier motion."
+    },
+    { "type": "checkbox", "id": "enable_autoplay", "label": "Auto-slide", "default": false },
+    {
+      "type": "range", "id": "autoplay_interval", "label": "Auto-slide time (seconds per product)",
+      "min": 2, "max": 12, "step": 1, "default": 4
+    },
+    {
+      "type": "checkbox", "id": "autoplay_pause_hover", "label": "Pause auto-slide while mouse is over the 3D area", "default": true,
+      "info": "Turn off if you want it to keep sliding even while the cursor is on it."
+    },
+    { "type": "checkbox", "id": "show_progress", "label": "Show progress bar", "default": true },
+
+    { "type": "header", "content": "Orbit & products" },
+    {
+      "type": "range", "id": "bottle_height", "label": "Product height (% of stage)",
+      "min": 40, "max": 80, "step": 2, "default": 62
+    },
+    {
+      "type": "range", "id": "active_scale", "label": "Active product scale",
+      "min": 1.1, "max": 1.4, "step": 0.1, "default": 1.2
+    },
+    {
+      "type": "range", "id": "back_scale", "label": "Background product scale",
+      "min": 0.4, "max": 0.8, "step": 0.1, "default": 0.6
+    },
+
+    { "type": "header", "content": "Heading" },
+    { "type": "text", "id": "eyebrow", "label": "Eyebrow", "default": "Maison Collection" },
+    { "type": "text", "id": "heading", "label": "Heading", "default": "The Velvet Collection" },
+
+    { "type": "header", "content": "Content" },
+    { "type": "checkbox", "id": "show_price", "label": "Show product price", "default": true },
+    { "type": "checkbox", "id": "show_label", "label": "Show small label above notes", "default": false },
+    { "type": "checkbox", "id": "show_title", "label": "Show product title text", "default": false },
+    { "type": "text", "id": "added_label", "label": "Added to cart label", "default": "Added to bag" },
+    { "type": "text", "id": "sold_out_label", "label": "Sold out label", "default": "Sold out" },
+
+    { "type": "header", "content": "Background" },
+    { "type": "color", "id": "bg_color_top", "label": "Gradient top", "default": "#101012" },
+    { "type": "color", "id": "bg_color_bottom", "label": "Gradient bottom", "default": "#040405" },
+    { "type": "color", "id": "spotlight_color", "label": "Spotlight color", "default": "#b8893a" },
+    {
+      "type": "range", "id": "spotlight_intensity", "label": "Spotlight intensity",
+      "min": 0, "max": 100, "step": 5, "default": 55
+    },
+    { "type": "image_picker", "id": "background_texture", "label": "Background texture (optional)" },
+    {
+      "type": "range", "id": "texture_opacity", "label": "Texture opacity",
+      "min": 0, "max": 100, "step": 5, "default": 20
+    },
+    { "type": "checkbox", "id": "show_particles", "label": "Show gold dust particles", "default": true },
+    { "type": "color", "id": "particle_color", "label": "Particle color", "default": "#d9b36c" },
+
+    { "type": "header", "content": "Pedestal & reflection" },
+    { "type": "checkbox", "id": "show_pedestal", "label": "Show pedestal", "default": true },
+    { "type": "checkbox", "id": "show_reflection", "label": "Show reflection floor", "default": true },
+    {
+      "type": "range", "id": "reflection_intensity", "label": "Reflection intensity",
+      "min": 0, "max": 100, "step": 5, "default": 35
+    },
+    { "type": "checkbox", "id": "show_smoke", "label": "Show smoke on pedestal", "default": true },
+    {
+      "type": "range", "id": "smoke_intensity", "label": "Smoke intensity",
+      "min": 10, "max": 100, "step": 5, "default": 60
+    },
+    {
+      "type": "range", "id": "bottle_drop", "label": "Lower product onto pedestal (% of stage)",
+      "min": 0, "max": 12, "step": 1, "default": 4,
+      "info": "Increase if the bottle looks like it floats above the pedestal."
+    },
+
+    { "type": "header", "content": "Typography & colors" },
+    { "type": "font_picker", "id": "heading_font", "label": "Heading font", "default": "playfair_display_n4" },
+    { "type": "font_picker", "id": "body_font", "label": "Body font", "default": "assistant_n4" },
+    {
+      "type": "range", "id": "heading_size", "label": "Product title size (px, max)",
+      "min": 28, "max": 96, "step": 2, "default": 56
+    },
+    {
+      "type": "range", "id": "body_size", "label": "Body text size (px)",
+      "min": 12, "max": 20, "step": 1, "default": 15
+    },
+    {
+      "type": "range", "id": "title_tracking", "label": "Title letter spacing",
+      "min": 0, "max": 12, "step": 1, "default": 3
+    },
+    { "type": "color", "id": "accent_color", "label": "Accent (gold)", "default": "#c9a45c" },
+    { "type": "color", "id": "text_color", "label": "Text color", "default": "#f5f1e8" }
+  ],
+  "blocks": [
+    {
+      "type": "product_slide",
+      "name": "Product slide",
+      "settings": [
+        { "type": "product", "id": "product", "label": "Product", "info": "Auto-pulls title, price and URL." },
+        {
+          "type": "image_picker", "id": "cutout_image", "label": "Product cutout (PNG/WebP)",
+          "info": "Transparent, high-res, cropped tight to the bottom. Falls back to the product's featured image."
+        },
+        { "type": "text", "id": "label", "label": "Small label", "default": "Eau de Parfum" },
+        { "type": "text", "id": "custom_title", "label": "Custom title", "info": "Leave blank to use the product title." },
+        { "type": "text", "id": "notes", "label": "Subtitle / fragrance notes", "default": "Amber, Velvet, Rose", "info": "Comma separated." },
+        { "type": "textarea", "id": "custom_description", "label": "Description", "info": "Leave blank to use the product description." },
+        { "type": "text", "id": "cta_label", "label": "Button text", "default": "Discover The Scent" },
+        {
+          "type": "select", "id": "cta_action", "label": "Button action", "default": "link",
+          "options": [
+            { "value": "link", "label": "Link" },
+            { "value": "add_to_cart", "label": "Add product to cart" }
+          ]
+        },
+        { "type": "url", "id": "cta_link", "label": "Button link", "info": "Leave blank to link to the product page." }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Luxury 3D Scroll Showcase",
+      "blocks": [
+        {
+          "type": "product_slide",
+          "settings": {
+            "label": "Eau de Parfum",
+            "custom_title": "Velvet Amber",
+            "notes": "Amber, Velvet, Rose",
+            "custom_description": "A smouldering heart of amber wrapped in velvet petals — an evening signature made to linger.",
+            "cta_label": "Discover The Scent"
+          }
+        },
+        {
+          "type": "product_slide",
+          "settings": {
+            "label": "Eau de Parfum",
+            "custom_title": "Noir Oud",
+            "notes": "Oud, Saffron, Leather",
+            "custom_description": "Dark, resinous oud lit by saffron and polished leather. Bold, nocturnal, unforgettable.",
+            "cta_label": "Discover The Scent"
+          }
+        },
+        {
+          "type": "product_slide",
+          "settings": {
+            "label": "Eau de Parfum",
+            "custom_title": "Rose Éclat",
+            "notes": "Damask Rose, Musk, Vanilla",
+            "custom_description": "Dew-kissed damask rose softened with white musk and warm vanilla.",
+            "cta_label": "Discover The Scent"
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}
