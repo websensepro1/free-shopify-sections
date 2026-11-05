@@ -32,7 +32,9 @@ A collection of free, high-quality, and customizable Shopify sections to enhance
 | [Custom Font](./custom-font) | Add custom fonts to any theme without writing CSS |
 | [Event Calendar](./event-calendar) | Functional event calendar to display upcoming events and promotions |
 | [FAQ](./faq) | Professional FAQ section — usable as a dedicated page or embeddable anywhere |
+| [Featured Testimonials](./featured-testimonials) | Center-focused infinite testimonial carousel with rating badge and optional floating video widget |
 | [Icons Slider](./icons-slider-in-shopify) | Scrolling icon/logo slider for any theme |
+| [Interactive Showcase](./interactive-showcase) | Tabbed showcase with circular icon tabs, animated timer ring and synced image/content |
 | [Lookbook Section](./lookbook-section) | Shoppable editorial image lookbook layout, compatible with Dawn v14+ |
 | [Metafields for Size Charts](./metafields-for-size-charts) | Product-specific size chart popups using Shopify metafields |
 | [Real-Time Delivery Dates](./real-time-delivery-dates) | Display estimated delivery dates using metafields to reduce cart abandonment |
