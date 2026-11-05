@@ -1,0 +1,850 @@
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400;1,500;1,600&family=Manrope:wght@400;500;600&display=swap" rel="stylesheet">
+
+<div
+  id="websensepro-salon-{{ section.id }}"
+  class="websensepro-root"
+  style="
+    --wsp-bg: {{ section.settings.bg_color }};
+    --wsp-fg: {{ section.settings.text_color }};
+    --wsp-muted: {{ section.settings.muted_color }};
+    --wsp-border: {{ section.settings.border_color }};
+    --wsp-panel-bg: {{ section.settings.panel_bg }};
+    --wsp-sec-height: {{ section.settings.sec_height }}vh;
+    --wsp-model-height: {{ section.settings.model_height }}px;
+  "
+>
+  <div class="wsp-stage" tabindex="0" role="region" aria-label="Fashion Salon Runway">
+    <div class="wsp-spotlight" aria-hidden="true"></div>
+    <div class="wsp-world" id="wspWorld"></div>
+
+    <div class="wsp-cursor-badge" id="wspCursorBadge" aria-hidden="true">
+      <div class="wsp-cursor-circle"><span>View</span></div>
+      <div class="wsp-cursor-meta">
+        <div class="wsp-cursor-title" id="wspCursorTitle"></div>
+        <div class="wsp-cursor-sub" id="wspCursorSub"></div>
+      </div>
+    </div>
+
+    <div class="wsp-stage-footer">
+      <div class="wsp-stage-footer-left"></div>
+      <div class="wsp-stage-footer-center">Drag to wander &nbsp;·&nbsp; Click a look to step closer</div>
+      <div class="wsp-stage-footer-right">Scroll to move through</div>
+    </div>
+  </div>
+
+  <div class="wsp-detail-overlay" id="wspDetailModal" aria-hidden="true">
+    <div class="wsp-detail-container">
+      <button type="button" class="wsp-mobile-close-btn" id="wspMobileCloseBtn" aria-label="Close look">✕</button>
+      
+      <div class="wsp-detail-grid">
+        <div class="wsp-detail-col-left">
+          <div class="wsp-look-desc-wrap">
+            <h3 class="wsp-detail-look-heading" id="wspDetailHeading"></h3>
+            <p class="wsp-look-description" id="wspLookDescription"></p>
+            <a href="#" class="wsp-look-page-link" id="wspLookPageLink">View product page →</a>
+          </div>
+          <div class="wsp-detail-nav">
+            <button type="button" class="wsp-nav-arrow" id="wspNavPrev">
+              <span class="wsp-nav-label" id="wspNavPrevLabel">Previous</span>
+            </button>
+            <span class="wsp-nav-counter" id="wspNavCounter">01 / 24</span>
+            <button type="button" class="wsp-nav-arrow" id="wspNavNext">
+              <span class="wsp-nav-label" id="wspNavNextLabel">Next</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="wsp-detail-col-center">
+          <div class="wsp-model-frame">
+            <img id="wspDetailModelImg" src="" alt="" draggable="false">
+          </div>
+        </div>
+
+        <div class="wsp-detail-col-right">
+          <div class="wsp-pieces-card">
+            <div class="wsp-pieces-header">
+              <span class="wsp-pieces-count" id="wspPiecesCount">Product Details</span>
+              <button type="button" class="wsp-close-detail" id="wspCloseDetail" aria-label="Close look">Close ✕</button>
+            </div>
+            <div class="wsp-pieces-list" id="wspPiecesList"></div>
+            <div class="wsp-size-section" id="wspSizeSection">
+              <div class="wsp-size-label-row">
+                <span class="wsp-size-head">Select size / variant</span>
+                <button type="button" class="wsp-size-guide-btn">Size guide</button>
+              </div>
+              <div class="wsp-size-pills" id="wspSizePills"></div>
+            </div>
+            <div class="wsp-actions-wrap">
+              <button type="button" class="wsp-btn-add-bag" id="wspBtnAddSingle">
+                <span class="wsp-btn-add-text">Add to bag</span>
+                <span class="wsp-btn-price" id="wspSingleBtnPrice"></span>
+              </button>
+              <button type="button" class="wsp-btn-full-look" id="wspBtnAddFull">
+                <span class="wsp-btn-full-text">Add the full look</span>
+                <span class="wsp-btn-price" id="wspFullBtnPrice"></span>
+              </button>
+            </div>
+            <p class="wsp-perk-note">
+              {{ section.settings.shipping_note | default: 'Complimentary delivery and returns. Woven in Biella, made in Italy.' }}
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="application/json" class="wsp-store-json">
+    [
+      {% for block in section.blocks %}
+        {% assign main_p = block.settings.main_product %}
+        {% assign p1 = block.settings.product_1 %}
+        {% assign p2 = block.settings.product_2 %}
+        {% assign p3 = block.settings.product_3 %}
+
+        {%- capture resolved_img -%}
+          {%- if main_p != blank and main_p.featured_image != blank -%}
+            {{ main_p.featured_image | image_url: width: 1400 }}
+          {%- elsif p1 != blank and p1.featured_image != blank -%}
+            {{ p1.featured_image | image_url: width: 1400 }}
+          {%- else -%}
+            https://framerusercontent.com/images/K3N2vsc2M9svXYhadXbsXiTHibk.png
+          {%- endif -%}
+        {%- endcapture -%}
+
+        {%- capture resolved_title -%}
+          {%- if block.settings.custom_title != blank -%}
+            {{ block.settings.custom_title }}
+          {%- elsif main_p != blank -%}
+            {{ main_p.title }}
+          {%- else -%}
+            Look {{ forloop.index }}
+          {%- endif -%}
+        {%- endcapture -%}
+
+        {
+          "id": {{ block.id | json }},
+          "index": {{ forloop.index0 }},
+          "lookNumber": "{{ forloop.index | prepend: '00' | slice: -2, 2 }}",
+          "title": {{ resolved_title | strip | json }},
+          "description": {% if block.settings.custom_description != blank %}{{ block.settings.custom_description | json }}{% elsif main_p != blank %}{{ main_p.description | strip_html | truncate: 250 | json }}{% else %}""{% endif %},
+          "modelImage": {{ resolved_img | strip | json }},
+          "lookUrl": {% if main_p != blank %}{{ main_p.url | json }}{% else %}"#"{% endif %},
+          "mainProduct": {% if main_p != blank %}
+            {
+              "id": {{ main_p.id | json }},
+              "title": {{ main_p.title | json }},
+              "price": {{ main_p.price | money | json }},
+              "rawPrice": {{ main_p.price }},
+              "image": {{ main_p.featured_image | image_url: width: 350 | json }},
+              "variants": [
+                {% for v in main_p.variants %}
+                  { "id": {{ v.id | json }}, "title": {{ v.title | json }}, "available": {{ v.available | json }}, "price": {{ v.price | money | json }}, "rawPrice": {{ v.price }} }{% unless forloop.last %},{% endunless %}
+                {% endfor %}
+              ]
+            }
+          {% else %}null{% endif %},
+          "pieces": [
+            {% if p1 != blank %}
+              { "id": {{ p1.id | json }}, "title": {{ p1.title | json }}, "price": {{ p1.price | money | json }}, "rawPrice": {{ p1.price }}, "image": {{ p1.featured_image | image_url: width: 350 | json }}, "variants": [{% for v in p1.variants %}{"id":{{ v.id | json }},"title":{{ v.title | json }},"available":{{ v.available | json }},"price":{{ v.price | money | json }},"rawPrice":{{ v.price }}}{% unless forloop.last %},{% endunless %}{% endfor %}] }{% if p2 != blank or p3 != blank %},{% endif %}
+            {% endif %}
+            {% if p2 != blank %}
+              { "id": {{ p2.id | json }}, "title": {{ p2.title | json }}, "price": {{ p2.price | money | json }}, "rawPrice": {{ p2.price }}, "image": {{ p2.featured_image | image_url: width: 350 | json }}, "variants": [{% for v in p2.variants %}{"id":{{ v.id | json }},"title":{{ v.title | json }},"available":{{ v.available | json }},"price":{{ v.price | money | json }},"rawPrice":{{ v.price }}}{% unless forloop.last %},{% endunless %}{% endfor %}] }{% if p3 != blank %},{% endif %}
+            {% endif %}
+            {% if p3 != blank %}
+              { "id": {{ p3.id | json }}, "title": {{ p3.title | json }}, "price": {{ p3.price | money | json }}, "rawPrice": {{ p3.price }}, "image": {{ p3.featured_image | image_url: width: 350 | json }}, "variants": [{% for v in p3.variants %}{"id":{{ v.id | json }},"title":{{ v.title | json }},"available":{{ v.available | json }},"price":{{ v.price | money | json }},"rawPrice":{{ v.price }}}{% unless forloop.last %},{% endunless %}{% endfor %}] }
+            {% endif %}
+          ]
+        }{% unless forloop.last %},{% endunless %}
+      {% endfor %}
+    ]
+  </script>
+</div>
+
+<style>
+#websensepro-salon-{{ section.id }} {
+  position: relative; width: 100%;
+  height: var(--wsp-sec-height, 100vh); min-height: 660px;
+  background-color: var(--wsp-bg); color: var(--wsp-fg);
+  font-family: 'Manrope', -apple-system, BlinkMacSystemFont, sans-serif;
+  overflow: hidden; user-select: none; -webkit-user-select: none; isolation: isolate;
+}
+#websensepro-salon-{{ section.id }} * { box-sizing: border-box; }
+
+#websensepro-salon-{{ section.id }} .wsp-stage {
+  position: absolute; inset: 0; cursor: grab; outline: none; touch-action: none;
+}
+#websensepro-salon-{{ section.id }} .wsp-stage:active { cursor: grabbing; }
+
+#websensepro-salon-{{ section.id }} .wsp-spotlight {
+  position: absolute; inset: 0; pointer-events: none; z-index: 1;
+  background:
+    radial-gradient(ellipse 85% 70% at 50% 50%, rgba(42,36,30,0.65) 0%, rgba(16,14,12,0.97) 80%),
+    radial-gradient(circle at 50% 65%, rgba(68,56,45,0.22) 0%, transparent 55%);
+}
+
+#websensepro-salon-{{ section.id }} .wsp-world {
+  position: absolute; inset: 0; z-index: 2; overflow: hidden; pointer-events: none;
+}
+
+#websensepro-salon-{{ section.id }} .wsp-figure-wrapper {
+  position: absolute; left: 50%; top: 50%;
+  will-change: transform, opacity, filter;
+  backface-visibility: hidden; -webkit-backface-visibility: hidden; pointer-events: none;
+}
+#websensepro-salon-{{ section.id }} .wsp-figure-btn {
+  background: transparent; border: none; padding: 0; margin: 0; outline: none;
+  position: relative; display: block; cursor: pointer; pointer-events: inherit;
+}
+#websensepro-salon-{{ section.id }} .wsp-figure-img {
+  display: block; height: var(--wsp-model-height, 520px); width: auto; max-width: none;
+  object-fit: contain; filter: drop-shadow(0 18px 28px rgba(0,0,0,0.65));
+}
+#websensepro-salon-{{ section.id }} .wsp-floor-shadow {
+  position: absolute; left: 50%; bottom: -4px; width: 75%; height: 18px;
+  transform: translateX(-50%); border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(0,0,0,0.85), transparent);
+  filter: blur(5px); pointer-events: none;
+}
+
+#websensepro-salon-{{ section.id }} .wsp-cursor-badge {
+  position: absolute; top: 0; left: 0; pointer-events: none !important; z-index: 850;
+  transform: translate(-50%,-50%); opacity: 0; visibility: hidden;
+  transition: opacity 0.2s cubic-bezier(0.16,1,0.3,1);
+  display: flex; flex-direction: column; align-items: center;
+}
+#websensepro-salon-{{ section.id }} .wsp-cursor-badge.is-visible { opacity: 1; visibility: visible; }
+#websensepro-salon-{{ section.id }} .wsp-cursor-circle {
+  width: 64px; height: 64px; border-radius: 50%; background: #eee8df; color: #14120e;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Manrope', sans-serif; font-size: 11.5px; font-weight: 600;
+  letter-spacing: 0.04em; box-shadow: 0 12px 30px rgba(0,0,0,0.6);
+}
+#websensepro-salon-{{ section.id }} .wsp-cursor-meta { margin-top: 10px; text-align: center; pointer-events: none; }
+#websensepro-salon-{{ section.id }} .wsp-cursor-title {
+  font-family: 'Cormorant Garamond', Georgia, serif; font-style: italic;
+  font-size: 22px; color: var(--wsp-fg); line-height: 1.2;
+}
+#websensepro-salon-{{ section.id }} .wsp-cursor-sub { font-size: 11px; color: var(--wsp-muted); letter-spacing: 0.02em; margin-top: 3px; }
+
+#websensepro-salon-{{ section.id }} .wsp-stage-footer {
+  position: absolute; bottom: 24px; left: 44px; right: 44px;
+  display: flex; align-items: center; justify-content: space-between;
+  font-size: 12px; color: var(--wsp-muted); pointer-events: none; z-index: 40;
+}
+
+/* ── MODAL OVERLAY ── */
+#websensepro-salon-{{ section.id }} .wsp-detail-overlay {
+  position: absolute; inset: 0; z-index: 900;
+  background: rgba(16,14,12,0.96); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+  opacity: 0; visibility: hidden; overflow-y: auto; -webkit-overflow-scrolling: touch;
+  transition: opacity 0.4s cubic-bezier(0.22,1,0.36,1), visibility 0.4s;
+  scrollbar-width: none; -ms-overflow-style: none;
+}
+#websensepro-salon-{{ section.id }} .wsp-detail-overlay::-webkit-scrollbar { display: none; }
+#websensepro-salon-{{ section.id }} .wsp-detail-overlay.is-active { opacity: 1; visibility: visible; }
+
+#websensepro-salon-{{ section.id }} .wsp-detail-container {
+  max-width: 1440px; margin: 0 auto; min-height: 100%;
+  display: flex; flex-direction: column; padding: 40px 44px; position: relative;
+}
+
+#websensepro-salon-{{ section.id }} .wsp-mobile-close-btn {
+  display: none; position: fixed; top: 16px; right: 16px; z-index: 999;
+  background: rgba(255,255,255,0.12); border: 1px solid var(--wsp-border);
+  color: var(--wsp-fg); width: 38px; height: 38px; border-radius: 50%;
+  font-size: 16px; cursor: pointer; align-items: center; justify-content: center;
+  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+}
+
+#websensepro-salon-{{ section.id }} .wsp-detail-grid {
+  flex: 1; display: grid; grid-template-columns: 300px 1fr 400px; gap: 40px; align-items: center;
+}
+#websensepro-salon-{{ section.id }} .wsp-detail-col-left {
+  display: flex; flex-direction: column; justify-content: space-between; height: 520px;
+}
+#websensepro-salon-{{ section.id }} .wsp-detail-look-heading {
+  font-family: 'Cormorant Garamond', Georgia, serif; font-style: italic;
+  font-size: 34px; font-weight: 400; color: var(--wsp-fg); margin: 0 0 14px;
+}
+#websensepro-salon-{{ section.id }} .wsp-look-description {
+  font-size: 13.5px; line-height: 1.7; color: #cfc8be; margin: 0 0 16px;
+}
+#websensepro-salon-{{ section.id }} .wsp-look-page-link {
+  color: var(--wsp-fg); font-size: 12.5px; text-decoration: underline; text-underline-offset: 4px;
+}
+#websensepro-salon-{{ section.id }} .wsp-detail-nav { display: flex; align-items: center; gap: 16px; }
+#websensepro-salon-{{ section.id }} .wsp-nav-arrow {
+  background: transparent; border: none; color: var(--wsp-fg);
+  font-family: 'Cormorant Garamond', serif; font-style: italic; font-size: 17px;
+  cursor: pointer; padding: 0; display: flex; align-items: center; gap: 6px;
+}
+#websensepro-salon-{{ section.id }} .wsp-nav-counter { font-family: 'Manrope', sans-serif; font-size: 12px; color: var(--wsp-muted); }
+#websensepro-salon-{{ section.id }} .wsp-detail-col-center { display: flex; justify-content: center; align-items: center; height: 100%; }
+#websensepro-salon-{{ section.id }} .wsp-model-frame { height: 72vh; max-height: 620px; position: relative; }
+#websensepro-salon-{{ section.id }} #wspDetailModelImg {
+  height: 100%; width: auto; object-fit: contain; display: block;
+  filter: drop-shadow(0 20px 35px rgba(0,0,0,0.7));
+  animation: wspModelFadeIn 0.45s ease-out;
+}
+@keyframes wspModelFadeIn {
+  from { opacity: 0; transform: translateY(18px) scale(0.98); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+#websensepro-salon-{{ section.id }} .wsp-pieces-card {
+  background: var(--wsp-panel-bg); border: 1px solid var(--wsp-border);
+  padding: 24px 26px; border-radius: 4px; box-shadow: 0 15px 45px rgba(0,0,0,0.5);
+}
+#websensepro-salon-{{ section.id }} .wsp-pieces-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 20px; padding-bottom: 14px; border-bottom: 1px solid var(--wsp-border);
+}
+#websensepro-salon-{{ section.id }} .wsp-pieces-count {
+  font-family: 'Cormorant Garamond', serif; font-style: italic; font-size: 19px; color: var(--wsp-fg);
+}
+#websensepro-salon-{{ section.id }} .wsp-close-detail {
+  background: transparent; border: none; color: var(--wsp-muted);
+  font-family: 'Manrope', sans-serif; font-size: 12px; cursor: pointer; transition: color 0.2s;
+}
+#websensepro-salon-{{ section.id }} .wsp-close-detail:hover { color: var(--wsp-fg); }
+#websensepro-salon-{{ section.id }} .wsp-piece-item {
+  display: grid; grid-template-columns: 50px 1fr auto; gap: 14px; align-items: center;
+  padding: 10px 8px; border-radius: 3px; cursor: pointer; border: 1px solid transparent; transition: all 0.2s;
+}
+#websensepro-salon-{{ section.id }} .wsp-piece-item:hover { background: rgba(255,255,255,0.04); }
+#websensepro-salon-{{ section.id }} .wsp-piece-item.is-selected { border-color: rgba(238,231,220,0.3); background: rgba(255,255,255,0.06); }
+#websensepro-salon-{{ section.id }} .wsp-piece-thumb { width: 50px; height: 60px; object-fit: contain; background: rgba(0,0,0,0.35); padding: 4px; border-radius: 2px; }
+#websensepro-salon-{{ section.id }} .wsp-piece-info { display: flex; flex-direction: column; }
+#websensepro-salon-{{ section.id }} .wsp-piece-title { font-size: 13.5px; font-weight: 500; color: var(--wsp-fg); }
+#websensepro-salon-{{ section.id }} .wsp-piece-price { font-size: 13px; color: var(--wsp-fg); font-variant-numeric: tabular-nums; }
+#websensepro-salon-{{ section.id }} .wsp-size-section { margin: 20px 0; padding-top: 16px; border-top: 1px solid var(--wsp-border); }
+#websensepro-salon-{{ section.id }} .wsp-size-label-row { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 11.5px; color: var(--wsp-muted); }
+#websensepro-salon-{{ section.id }} .wsp-size-guide-btn { background: transparent; border: none; color: var(--wsp-muted); text-decoration: underline; cursor: pointer; }
+#websensepro-salon-{{ section.id }} .wsp-size-pills { display: flex; flex-wrap: wrap; gap: 8px; }
+#websensepro-salon-{{ section.id }} .wsp-size-pill {
+  min-width: 44px; height: 34px; display: inline-flex; align-items: center; justify-content: center;
+  border: 1px solid var(--wsp-border); background: transparent; color: var(--wsp-fg);
+  font-size: 12px; border-radius: 2px; cursor: pointer; transition: all 0.2s;
+}
+#websensepro-salon-{{ section.id }} .wsp-size-pill:hover { border-color: var(--wsp-fg); }
+#websensepro-salon-{{ section.id }} .wsp-size-pill.is-active { background: var(--wsp-fg); color: var(--wsp-bg); border-color: var(--wsp-fg); }
+#websensepro-salon-{{ section.id }} .wsp-actions-wrap { display: flex; flex-direction: column; gap: 10px; margin-top: 20px; }
+#websensepro-salon-{{ section.id }} .wsp-btn-add-bag,
+#websensepro-salon-{{ section.id }} .wsp-btn-full-look {
+  width: 100%; padding: 14px 18px; border-radius: 2px; display: flex;
+  align-items: center; justify-content: space-between;
+  font-family: 'Manrope', sans-serif; font-size: 12.5px; font-weight: 600; cursor: pointer; transition: opacity 0.2s;
+}
+#websensepro-salon-{{ section.id }} .wsp-btn-add-bag { background: var(--wsp-fg); color: var(--wsp-bg); border: none; }
+#websensepro-salon-{{ section.id }} .wsp-btn-add-bag:hover { opacity: 0.9; }
+#websensepro-salon-{{ section.id }} .wsp-btn-full-look { background: transparent; color: var(--wsp-fg); border: 1px solid var(--wsp-border); }
+#websensepro-salon-{{ section.id }} .wsp-btn-full-look:hover { background: rgba(255,255,255,0.05); }
+#websensepro-salon-{{ section.id }} .wsp-perk-note { margin: 18px 0 0; font-size: 11px; line-height: 1.5; color: var(--wsp-muted); }
+
+/* ── RESPONSIVE MOBILE FIXES ── */
+@media (max-width: 991px) {
+  #websensepro-salon-{{ section.id }} .wsp-mobile-close-btn { display: inline-flex; }
+  #websensepro-salon-{{ section.id }} .wsp-stage-footer { left: 16px; right: 16px; font-size: 11px; bottom: 16px; }
+  #websensepro-salon-{{ section.id }} .wsp-detail-container { padding: 50px 16px 36px; }
+  
+  #websensepro-salon-{{ section.id }} .wsp-detail-grid {
+    display: flex; flex-direction: column; gap: 20px; align-items: stretch;
+  }
+  
+  #websensepro-salon-{{ section.id }} .wsp-detail-col-center {
+    order: 1; height: auto; min-height: unset; max-height: 44vh;
+    display: flex; justify-content: center; align-items: center;
+  }
+  #websensepro-salon-{{ section.id }} .wsp-model-frame {
+    height: 42vh; max-height: 42vh; width: 100%; display: flex; justify-content: center;
+  }
+  #websensepro-salon-{{ section.id }} #wspDetailModelImg {
+    max-height: 100%; max-width: 100%; width: auto; height: 100%; object-fit: contain;
+  }
+
+  #websensepro-salon-{{ section.id }} .wsp-detail-col-left {
+    order: 2; height: auto; text-align: center; gap: 16px;
+  }
+  #websensepro-salon-{{ section.id }} .wsp-detail-look-heading {
+    font-size: 26px; margin: 0 0 8px;
+  }
+  #websensepro-salon-{{ section.id }} .wsp-look-description {
+    font-size: 12.5px; margin: 0 0 10px;
+  }
+  #websensepro-salon-{{ section.id }} .wsp-detail-nav {
+    justify-content: center; margin-top: 10px;
+  }
+
+  #websensepro-salon-{{ section.id }} .wsp-detail-col-right {
+    order: 3; width: 100%; margin-top: 4px;
+  }
+  #websensepro-salon-{{ section.id }} .wsp-pieces-card {
+    padding: 18px 16px;
+  }
+}
+
+@media (max-width: 768px) {
+  #websensepro-salon-{{ section.id }} .wsp-figure-img {
+    height: calc(var(--wsp-model-height, 520px) * 0.78);
+  }
+}
+</style>
+
+<script>
+(() => {
+  const container = document.getElementById('websensepro-salon-{{ section.id }}');
+  if (!container) return;
+
+  const rawJsonEl = container.querySelector('.wsp-store-json');
+  let rawLooks = [];
+  try { rawLooks = JSON.parse(rawJsonEl.textContent); }
+  catch (err) { console.error('[WebSensePro] JSON parse error', err); return; }
+  if (!rawLooks || rawLooks.length === 0) return;
+
+  const stage          = container.querySelector('.wsp-stage');
+  const world          = container.querySelector('#wspWorld');
+  const cursorBadge    = container.querySelector('#wspCursorBadge');
+  const cursorTitle    = container.querySelector('#wspCursorTitle');
+  const cursorSub      = container.querySelector('#wspCursorSub');
+  const detailModal    = container.querySelector('#wspDetailModal');
+  const closeDetailBtn = container.querySelector('#wspCloseDetail');
+  const mobileCloseBtn = container.querySelector('#wspMobileCloseBtn');
+  const detailModelImg = container.querySelector('#wspDetailModelImg');
+  const detailHeading  = container.querySelector('#wspDetailHeading');
+  const lookDescription= container.querySelector('#wspLookDescription');
+  const lookPageLink   = container.querySelector('#wspLookPageLink');
+  const navPrev        = container.querySelector('#wspNavPrev');
+  const navNext        = container.querySelector('#wspNavNext');
+  const navPrevLabel   = container.querySelector('#wspNavPrevLabel');
+  const navNextLabel   = container.querySelector('#wspNavNextLabel');
+  const navCounter     = container.querySelector('#wspNavCounter');
+  const piecesListEl   = container.querySelector('#wspPiecesList');
+  const sizePillsEl    = container.querySelector('#wspSizePills');
+  const btnAddSingle   = container.querySelector('#wspBtnAddSingle');
+  const btnAddFull     = container.querySelector('#wspBtnAddFull');
+  const singleBtnPrice = container.querySelector('#wspSingleBtnPrice');
+  const fullBtnPrice   = container.querySelector('#wspFullBtnPrice');
+  const piecesCount    = container.querySelector('#wspPiecesCount');
+
+  /* ── Settings from Shopify schema ── */
+  const WHEEL_SENSITIVITY = Number({{ section.settings.scroll_sensitivity | default: 3 }}) * 0.0006;
+  const AUTO_DRIFT_SPEED  = Number({{ section.settings.auto_drift_speed | default: 1 }}) * 0.45;
+  const BASE_BG_BLUR      = Number({{ section.settings.bg_blur_amount | default: 5 }});
+  const USER_SPACING      = Number({{ section.settings.model_spacing | default: 330 }});
+  const isMobile          = window.innerWidth <= 768;
+  const MODEL_H_PX        = isMobile 
+    ? (Number({{ section.settings.model_height | default: 520 }}) * 0.78)
+    : Number({{ section.settings.model_height | default: 520 }});
+
+  /* ── Perspective Constants ── */
+  const VANISH_FRAC      = 0.08;
+  const FOCAL_FEET_FRAC  = 0.88;
+  const DEPTH_FACTOR     = 0.62;
+
+  const COLS_PER_ROW = isMobile ? 2 : 4;
+  const TOTAL_TIERS  = 6;
+
+  const stageW          = Math.max(isMobile ? 360 : 1280, window.innerWidth);
+  const colSpacing      = isMobile ? (stageW / 2.1) : Math.max(260, USER_SPACING);
+  const bufferCols      = Math.ceil((stageW + 800) / colSpacing);
+  const trackCols       = Math.max(COLS_PER_ROW + 4, bufferCols);
+  const totalSlots      = TOTAL_TIERS * trackCols;
+  const totalTrackWidth = trackCols * colSpacing;
+
+  const stride = rawLooks.length > 3 ? 3 : 1;
+  const virtualItems = [];
+  for (let i = 0; i < totalSlots; i++) {
+    const tier    = Math.floor(i / trackCols);
+    const col     = i % trackCols;
+    const lookIdx = (tier * stride + col) % rawLooks.length;
+    virtualItems.push({ look: rawLooks[lookIdx], tier, col });
+  }
+
+  let progressZ = 0, targetZ = 0;
+  let cameraX = 0,   targetX = 0;
+  let isDragging = false, startDragX = 0, currentDragX = 0, velocityX = 0;
+  let userInteracting = false, interactionTimer = null;
+  let currentActiveLookIndex = 0, selectedPieceIndex = 0, selectedVariantId = null;
+
+  /* ── Build DOM ── */
+  const nodeRefs = virtualItems.map((item) => {
+    const wrap = document.createElement('div');
+    wrap.className = 'wsp-figure-wrapper';
+    const btn  = document.createElement('button');
+    btn.type   = 'button';
+    btn.className = 'wsp-figure-btn';
+    btn.setAttribute('aria-label', `${item.look.title}, Look ${item.look.lookNumber}`);
+    const img  = document.createElement('img');
+    img.className = 'wsp-figure-img';
+    img.src = item.look.modelImage;
+    img.alt = item.look.title;
+    img.loading = 'eager';
+    const shadow = document.createElement('div');
+    shadow.className = 'wsp-floor-shadow';
+    btn.appendChild(img); btn.appendChild(shadow); wrap.appendChild(btn);
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (Math.abs(velocityX) > 1.2) return;
+      openLookDetail(item.look.index);
+    });
+    world.appendChild(wrap);
+    return { el: wrap, btn, img, item, isFocal: false };
+  });
+
+  /* ── 3D Multi-Row Depth Math with Front-Pass-Through Blur ── */
+  function renderSalon() {
+    const stageH     = stage.clientHeight;
+    const vanishY    = stageH * VANISH_FRAC;
+    const focalFeetY = stageH * FOCAL_FEET_FRAC;
+
+    nodeRefs.forEach((ref) => {
+      const { tier, col } = ref.item;
+
+      let D = (tier - progressZ) % TOTAL_TIERS;
+      if (D < -1.8)              D += TOTAL_TIERS;
+      if (D > TOTAL_TIERS - 2.0) D -= TOTAL_TIERS;
+
+      if (D > 4.7 || D < -1.5) {
+        ref.el.style.visibility    = 'hidden';
+        ref.el.style.opacity       = '0';
+        ref.isFocal                = false;
+        ref.el.style.pointerEvents = 'none';
+        return;
+      }
+      ref.el.style.visibility = 'visible';
+
+      let scale, blur, opacity, zIndex, isFocal = false, y;
+
+      if (D >= -0.28 && D <= 0.28) {
+        /* Focal Row */
+        scale = 1.0; blur = 0; opacity = 1.0; zIndex = 100; isFocal = true;
+        const feetY   = focalFeetY;
+        const centerY = feetY - MODEL_H_PX * 0.5;
+        y = centerY - stageH * 0.5;
+
+      } else if (D > 0.28) {
+        /* Background Rows */
+        const b = D - 0.28;
+        scale   = Math.max(0.14, 1.0 / (1.0 + b * DEPTH_FACTOR));
+        blur    = Math.min(BASE_BG_BLUR + 2, b * BASE_BG_BLUR * 0.55);
+        opacity = Math.max(0.22, 1.0 - b * 0.15);
+        zIndex  = Math.round(50 - b * 10);
+
+        const feetY   = vanishY + (focalFeetY - vanishY) * scale;
+        const centerY = feetY - MODEL_H_PX * scale * 0.5;
+        y = centerY - stageH * 0.5;
+
+      } else {
+        /* Front Pass-Through Row (Enlarged & Blurred) */
+        const f = Math.abs(D) - 0.28;
+        scale   = 1.0 + f * 0.85;
+        blur    = Math.min(14, f * 12);
+        opacity = Math.max(0.25, 1.0 - f * 0.82);
+        zIndex  = Math.round(115 + f * 10);
+
+        const sinkFeetY = focalFeetY + f * (stageH * 0.12 + MODEL_H_PX * 0.18);
+        const centerY   = sinkFeetY - (MODEL_H_PX * scale) * 0.5;
+        y = centerY - stageH * 0.5;
+      }
+
+      const stagger = (tier % 2 === 1) ? colSpacing * 0.5 : 0;
+      const baseX   = (col - (trackCols - 1) / 2) * colSpacing + stagger;
+      const rawX    = baseX + cameraX;
+      const x       = ((rawX % totalTrackWidth) + totalTrackWidth) % totalTrackWidth - totalTrackWidth / 2;
+
+      ref.el.style.transform      = `translate3d(calc(-50% + ${x.toFixed(1)}px), calc(-50% + ${y.toFixed(1)}px), 0) scale(${scale.toFixed(3)})`;
+      ref.el.style.filter         = blur > 0.05 ? `blur(${blur.toFixed(2)}px)` : 'none';
+      ref.el.style.opacity        = opacity.toFixed(3);
+      ref.el.style.zIndex         = zIndex;
+      ref.isFocal                 = isFocal;
+      ref.el.style.pointerEvents  = isFocal ? 'auto' : 'none';
+      ref.btn.style.pointerEvents = isFocal ? 'auto' : 'none';
+    });
+  }
+
+  function tick() {
+    progressZ += (targetZ - progressZ) * 0.075;
+    if (!isDragging) {
+      if (!userInteracting && AUTO_DRIFT_SPEED > 0) targetX -= AUTO_DRIFT_SPEED;
+      targetX  += velocityX;
+      velocityX *= 0.92;
+    }
+    cameraX += (targetX - cameraX) * 0.085;
+    renderSalon();
+    requestAnimationFrame(tick);
+  }
+
+  function markUserInteraction() {
+    userInteracting = true;
+    clearTimeout(interactionTimer);
+    interactionTimer = setTimeout(() => { userInteracting = false; }, 2800);
+  }
+
+  /* ── Interaction Events ── */
+  stage.addEventListener('wheel', (e) => {
+    if (detailModal.classList.contains('is-active')) return;
+    e.preventDefault();
+    markUserInteraction();
+    targetZ += Math.sign(e.deltaY) * Math.min(80, Math.abs(e.deltaY)) * WHEEL_SENSITIVITY;
+  }, { passive: false });
+
+  stage.addEventListener('pointerdown', (e) => {
+    if (detailModal.classList.contains('is-active')) return;
+    isDragging = true; markUserInteraction();
+    startDragX = currentDragX = e.clientX; velocityX = 0;
+  });
+
+  window.addEventListener('pointermove', (e) => {
+    if (detailModal.classList.contains('is-active')) {
+      cursorBadge.classList.remove('is-visible'); return;
+    }
+    if (isDragging) {
+      const dx = e.clientX - currentDragX;
+      currentDragX = e.clientX; targetX += dx * 1.35; velocityX = dx;
+    }
+    if (isMobile) return;
+    const rect = stage.getBoundingClientRect();
+    if (e.clientX >= rect.left && e.clientX <= rect.right && e.clientY >= rect.top && e.clientY <= rect.bottom) {
+      cursorBadge.style.left = `${e.clientX}px`;
+      cursorBadge.style.top  = `${e.clientY}px`;
+      let hovered = null;
+      for (const ref of nodeRefs) {
+        if (!ref.isFocal) continue;
+        const b = ref.img.getBoundingClientRect();
+        if (e.clientX >= b.left && e.clientX <= b.right && e.clientY >= b.top && e.clientY <= b.bottom) {
+          hovered = ref; break;
+        }
+      }
+      if (hovered) {
+        cursorTitle.textContent = hovered.item.look.title;
+        cursorSub.textContent   = `Look ${hovered.item.look.lookNumber}${hovered.item.look.mainProduct ? ' · ' + hovered.item.look.mainProduct.price : ''}`;
+        cursorBadge.classList.add('is-visible');
+      } else { cursorBadge.classList.remove('is-visible'); }
+    } else { cursorBadge.classList.remove('is-visible'); }
+  });
+
+  window.addEventListener('pointerup', () => { isDragging = false; });
+
+  let touchStartX = 0, touchStartY = 0;
+  stage.addEventListener('touchstart', (e) => {
+    if (e.touches[0]) { touchStartX = currentDragX = startDragX = e.touches[0].clientX; touchStartY = e.touches[0].clientY; }
+  }, { passive: true });
+  stage.addEventListener('touchmove', (e) => {
+    if (detailModal.classList.contains('is-active')) return;
+    markUserInteraction();
+    if (e.touches[0]) {
+      const cx = e.touches[0].clientX, cy = e.touches[0].clientY;
+      if (Math.abs(touchStartY - cy) > 6) { targetZ += (touchStartY - cy) * 0.0035; touchStartY = cy; }
+      if (Math.abs(cx - touchStartX)  > 6) { targetX  += (cx - touchStartX)  * 1.2;  touchStartX = cx; }
+    }
+  }, { passive: true });
+
+  /* ── Detail Modal ── */
+  function openLookDetail(idx) {
+    currentActiveLookIndex = idx; selectedPieceIndex = 0;
+    cursorBadge.classList.remove('is-visible');
+    const look = rawLooks[idx]; if (!look) return;
+    detailModelImg.src          = look.modelImage;
+    detailModelImg.alt          = look.title;
+    detailHeading.textContent   = look.title;
+    lookDescription.textContent = look.description || `${look.title} tailored look.`;
+    lookPageLink.href           = look.lookUrl || '#';
+    const pi = (idx - 1 + rawLooks.length) % rawLooks.length;
+    const ni = (idx + 1) % rawLooks.length;
+    navPrevLabel.textContent = `← ${rawLooks[pi].title} ${rawLooks[pi].lookNumber}`;
+    navNextLabel.textContent = `${rawLooks[ni].title} ${rawLooks[ni].lookNumber} →`;
+    navCounter.textContent   = `${look.lookNumber} / ${String(rawLooks.length).padStart(2,'0')}`;
+    renderPieces(look);
+    detailModal.classList.add('is-active');
+    detailModal.setAttribute('aria-hidden','false');
+    detailModal.scrollTop = 0;
+  }
+
+  function renderPieces(look) {
+    piecesListEl.innerHTML = '';
+    let items = [];
+    if (look.mainProduct) items.push(look.mainProduct);
+    if (look.pieces?.length) items = items.concat(look.pieces);
+    piecesCount.textContent = `${items.length} piece${items.length === 1 ? '' : 's'}`;
+    let total = 0;
+    items.forEach((piece, pIdx) => {
+      total += (piece.rawPrice || 0);
+      const el = document.createElement('div');
+      el.className = `wsp-piece-item ${pIdx === selectedPieceIndex ? 'is-selected' : ''}`;
+      el.innerHTML = `<img class="wsp-piece-thumb" src="${piece.image||''}" alt="${piece.title}">
+        <div class="wsp-piece-info"><span class="wsp-piece-title">${piece.title}</span></div>
+        <span class="wsp-piece-price">${piece.price||''}</span>`;
+      el.addEventListener('click', () => {
+        selectedPieceIndex = pIdx;
+        container.querySelectorAll('.wsp-piece-item').forEach((e,i) => e.classList.toggle('is-selected', i === pIdx));
+        updateSizePills(items[pIdx]);
+      });
+      piecesListEl.appendChild(el);
+    });
+    fullBtnPrice.textContent = (look.mainProduct?.rawPrice) ? look.mainProduct.price : formatMoney(total);
+    if (items[selectedPieceIndex]) updateSizePills(items[selectedPieceIndex]);
+  }
+
+  function updateSizePills(piece) {
+    sizePillsEl.innerHTML = '';
+    singleBtnPrice.textContent = piece.price || '';
+    const variants = piece.variants || [];
+    if (!variants.length) { selectedVariantId = null; return; }
+    selectedVariantId = variants[0].id;
+    variants.forEach((v, i) => {
+      const b = document.createElement('button');
+      b.type = 'button'; b.className = `wsp-size-pill ${i === 0 ? 'is-active' : ''}`;
+      b.textContent = v.title; if (!v.available) b.disabled = true;
+      b.addEventListener('click', () => {
+        selectedVariantId = v.id; singleBtnPrice.textContent = v.price;
+        sizePillsEl.querySelectorAll('.wsp-size-pill').forEach(x => x.classList.remove('is-active'));
+        b.classList.add('is-active');
+      });
+      sizePillsEl.appendChild(b);
+    });
+  }
+
+  function formatMoney(cents) {
+    if (!cents) return '';
+    return '{{ cart.currency.symbol }}' + (cents / 100).toLocaleString('en-US', { minimumFractionDigits: 0 });
+  }
+
+  function closeModal() {
+    detailModal.classList.remove('is-active');
+    detailModal.setAttribute('aria-hidden','true');
+  }
+
+  closeDetailBtn.addEventListener('click', closeModal);
+  if (mobileCloseBtn) mobileCloseBtn.addEventListener('click', closeModal);
+
+  navPrev.addEventListener('click', () => openLookDetail((currentActiveLookIndex - 1 + rawLooks.length) % rawLooks.length));
+  navNext.addEventListener('click', () => openLookDetail((currentActiveLookIndex + 1) % rawLooks.length));
+
+  /* ── Shopify Cart Integration (Dawn Cart Drawer) ── */
+  async function refreshAndOpenCartDrawer() {
+    try {
+      const html = await (await fetch('/?section_id=cart-drawer')).text();
+      const doc  = new DOMParser().parseFromString(html, 'text/html');
+      const newI = doc.querySelector('.drawer__inner, #CartDrawer');
+      const curI = document.querySelector('.drawer__inner, #CartDrawer');
+      const cd   = document.querySelector('cart-drawer');
+      if (newI && curI) { curI.innerHTML = newI.innerHTML; curI.classList.remove('is-empty'); }
+      if (cd) cd.classList.remove('is-empty');
+
+      const iHtml = await (await fetch('/?section_id=cart-icon-bubble')).text();
+      const iDoc  = new DOMParser().parseFromString(iHtml, 'text/html');
+      const newIcon = iDoc.querySelector('#cart-icon-bubble, .cart-count-bubble');
+      const curIcon = document.querySelector('#cart-icon-bubble, .cart-count-bubble');
+      if (newIcon && curIcon) curIcon.innerHTML = newIcon.innerHTML;
+
+      if (cd && typeof cd.open === 'function') cd.open();
+      else if (cd) { cd.classList.add('active','animate'); document.body.classList.add('overflow-hidden'); }
+      else { document.querySelector('[data-cart-drawer-trigger],.header__cart,#cart-icon-bubble,[aria-controls="CartDrawer"]')?.click(); }
+
+      const ov = document.querySelector('#CartDrawer-Overlay');
+      if (ov) ov.addEventListener('click', () => document.querySelector('cart-drawer')?.close?.(), { once: true });
+    } catch (err) {
+      console.warn('[WebSensePro] Cart drawer:', err);
+      document.querySelector('#cart-icon-bubble,[data-cart-drawer-trigger]')?.click();
+    }
+  }
+
+  async function addItemsToShopifyCart(items, btn, label) {
+    if (btn) { btn.disabled = true; const s = btn.querySelector('span:first-child'); if (s) s.textContent = 'Adding...'; }
+    try {
+      const r = await fetch('/cart/add.js', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify({ items })
+      });
+      if (!r.ok) throw new Error('Add failed');
+      await refreshAndOpenCartDrawer();
+      const cartData = await (await fetch('/cart.js')).json();
+      document.dispatchEvent(new CustomEvent('cart:updated', { bubbles: true, detail: cartData }));
+      document.dispatchEvent(new CustomEvent('cart:refresh', { bubbles: true }));
+      if (btn) {
+        const s = btn.querySelector('span:first-child');
+        if (s) s.textContent = 'Added ✓';
+        setTimeout(() => { if (s) s.textContent = label; btn.disabled = false; }, 1500);
+      }
+    } catch (err) {
+      console.error('[WebSensePro Cart]', err);
+      if (btn) { const s = btn.querySelector('span:first-child'); if (s) s.textContent = label; btn.disabled = false; }
+    }
+  }
+
+  btnAddSingle.addEventListener('click', () => {
+    if (!selectedVariantId) return;
+    addItemsToShopifyCart([{ id: selectedVariantId, quantity: 1 }], btnAddSingle, 'Add to bag');
+  });
+
+  btnAddFull.addEventListener('click', () => {
+    const look = rawLooks[currentActiveLookIndex]; if (!look) return;
+    if (look.mainProduct?.variants?.length) {
+      const v = look.mainProduct.variants.find(x => x.available) || look.mainProduct.variants[0];
+      addItemsToShopifyCart([{ id: v.id, quantity: 1 }], btnAddFull, 'Add the full look');
+      return;
+    }
+    if (look.pieces?.length) {
+      const items = look.pieces.flatMap(p => {
+        if (!p.variants?.length) return [];
+        const v = p.variants.find(x => x.available) || p.variants[0];
+        return [{ id: v.id, quantity: 1 }];
+      });
+      if (items.length) addItemsToShopifyCart(items, btnAddFull, 'Add the full look');
+    }
+  });
+
+  requestAnimationFrame(tick);
+})();
+</script>
+
+{% schema %}
+{
+  "name": "WSP Interactive Showroom",
+  "tag": "section",
+  "class": "section-websensepro-salon",
+  "settings": [
+    { "type": "header", "content": "Stage & Model Dimensions" },
+    { "type": "range", "id": "sec_height", "label": "Section Height", "min": 70, "max": 100, "step": 5, "unit": "vh", "default": 100 },
+    { "type": "range", "id": "model_height", "label": "Focal Model Height", "min": 400, "max": 650, "step": 10, "unit": "px", "default": 520 },
+    { "type": "range", "id": "model_spacing", "label": "Horizontal Spacing Between Models", "min": 240, "max": 420, "step": 10, "unit": "px", "default": 330 },
+    { "type": "header", "content": "Scroll & 3D Depth Controls" },
+    { "type": "range", "id": "scroll_sensitivity", "label": "Wheel Scroll Sensitivity (Lower = Slower)", "min": 1, "max": 8, "step": 1, "default": 3 },
+    { "type": "range", "id": "auto_drift_speed", "label": "Auto Horizontal Drift Speed (0 to Disable)", "min": 0, "max": 2, "step": 1, "default": 1 },
+    { "type": "range", "id": "bg_blur_amount", "label": "Background Blur Strength", "min": 2, "max": 8, "step": 1, "unit": "px", "default": 5 },
+    { "type": "header", "content": "Colors & Styling" },
+    { "type": "color", "id": "bg_color", "label": "Background Color", "default": "#100e0c" },
+    { "type": "color", "id": "text_color", "label": "Foreground Text Color", "default": "#eee7dc" },
+    { "type": "color", "id": "muted_color", "label": "Muted Text Color", "default": "#a39a8e" },
+    { "type": "color", "id": "border_color", "label": "Border Color", "default": "rgba(238, 231, 220, 0.15)" },
+    { "type": "color", "id": "panel_bg", "label": "Drawer Panel Background", "default": "#16130f" },
+    { "type": "text", "id": "shipping_note", "label": "Perk / Shipping Note", "default": "Complimentary delivery and returns. Woven in Biella, made in Italy." }
+  ],
+  "blocks": [
+    {
+      "type": "look",
+      "name": "Fashion Look",
+      "settings": [
+        { "type": "product", "id": "main_product", "label": "Select Product (Full Outfit / Model)", "info": "Product image, title, price and sizes will be fetched automatically" },
+        { "type": "text", "id": "custom_title", "label": "Custom Look Name (Optional)", "info": "Leave empty to use the product's own name" },
+        { "type": "textarea", "id": "custom_description", "label": "Custom Description (Optional)", "info": "Leave empty to use the product's description" },
+        { "type": "header", "content": "Additional Pieces (Optional)" },
+        { "type": "product", "id": "product_1", "label": "Piece 1 (e.g. Jacket / Coat)" },
+        { "type": "product", "id": "product_2", "label": "Piece 2 (e.g. Trousers / Skirt)" },
+        { "type": "product", "id": "product_3", "label": "Piece 3 (e.g. Loafers / Shoes / Boots)" }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "WSP Interactive Showroom",
+      "blocks": [
+        { "type": "look" }, { "type": "look" }, { "type": "look" },
+        { "type": "look" }, { "type": "look" }, { "type": "look" }
+      ]
+    }
+  ]
+}
+{% endschema %}
