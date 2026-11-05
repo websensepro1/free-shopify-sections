@@ -1,0 +1,874 @@
+{%- style -%}
+  #shopify-section-{{ section.id }} {
+    --bg-color: {{ section.settings.bg_color }};
+    --text-color: {{ section.settings.text_color }};
+    --subtext-color: {{ section.settings.subtext_color }};
+    --pill-bg: {{ section.settings.pill_bg }};
+    --accent-color: {{ section.settings.accent_color }};
+    --btn-bg: {{ section.settings.btn_bg }};
+    --btn-text: {{ section.settings.btn_text }};
+    --btn-hover-bg: {{ section.settings.btn_hover_bg }};
+    --pt: {{ section.settings.padding_top }}px;
+    --pb: {{ section.settings.padding_bottom }}px;
+    --ring-circumference: 182.21;
+  }
+
+  .ifs-section-{{ section.id }} {
+    background-color: var(--bg-color);
+    padding-top: var(--pt);
+    padding-bottom: var(--pb);
+    width: 100%;
+    box-sizing: border-box;
+    font-family: inherit;
+  }
+
+  .ifs-container-{{ section.id }} {
+    max-width: {{ section.settings.max_width }}px;
+    margin: 0 auto;
+    padding: 0 20px;
+    box-sizing: border-box;
+  }
+
+  .ifs-grid-{{ section.id }} {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 32px;
+    align-items: center;
+  }
+
+  @media screen and (min-width: 769px) {
+    .ifs-grid-{{ section.id }} {
+      grid-template-columns: 1.05fr 0.95fr;
+      gap: 50px;
+    }
+  }
+
+  @media screen and (max-width: 768px) {
+    .ifs-section-{{ section.id }} {
+      padding-top: max(24px, calc(var(--pt) * 0.6));
+      padding-bottom: max(24px, calc(var(--pb) * 0.6));
+    }
+
+    .ifs-container-{{ section.id }} {
+      padding: 0 16px;
+    }
+  }
+
+
+  .ifs-main-image-wrapper {
+    position: relative;
+    width: 100%;
+    max-width: 500px;
+    margin: 0 auto;
+    border-radius: 12px;
+    overflow: hidden;
+    background-color: #f5f5f5;
+    aspect-ratio: 1 / 1;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.06);
+  }
+
+  @media screen and (min-width: 769px) {
+    .ifs-main-image-wrapper {
+      max-width: 100%;
+      margin: 0;
+    }
+  }
+
+  .ifs-main-image-item {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.4s ease, transform 0.4s ease;
+    transform: scale(1.02);
+  }
+
+  .ifs-main-image-item.active {
+    opacity: 1;
+    visibility: visible;
+    transform: scale(1);
+    z-index: 2;
+  }
+
+  .ifs-main-image-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  .ifs-placeholder-svg {
+    width: 100%;
+    height: 100%;
+    background-color: #e2e2e2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    fill: #999;
+  }
+  .ifs-content-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    width: 100%;
+  }
+  .ifs-section-heading {
+    color: var(--text-color);
+    font-size: clamp(22px, 3.5vw, 34px);
+    font-weight: 700;
+    margin: 0 0 10px 0;
+    line-height: 1.25;
+    word-break: break-word;
+  }
+
+  .ifs-section-subheading {
+    color: var(--subtext-color);
+    font-size: clamp(14px, 1.6vw, 16px);
+    margin: 0 0 24px 0;
+    max-width: 480px;
+    line-height: 1.5;
+  }
+
+  @media screen and (min-width: 769px) {
+    .ifs-section-heading {
+      margin-bottom: 12px;
+    }
+    .ifs-section-subheading {
+      margin-bottom: 32px;
+    }
+  }
+
+
+  .ifs-tabs-bar-wrapper {
+    width: 100%;
+    margin-bottom: 24px;
+    display: flex;
+    justify-content: center;
+  }
+
+  @media screen and (min-width: 769px) {
+    .ifs-tabs-bar-wrapper {
+      margin-bottom: 32px;
+    }
+  }
+
+  .ifs-tabs-bar {
+    background-color: var(--pill-bg);
+    border-radius: 50px;
+    padding: 8px 16px;
+    display: inline-flex;
+    align-items: flex-start;
+    gap: 14px;
+    max-width: 100%;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .ifs-tabs-bar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .ifs-tab-button {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 4px;
+    outline: none;
+    transition: transform 0.2s ease;
+    min-width: 60px;
+    flex-shrink: 0;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+
+  .ifs-tab-button:hover {
+    transform: translateY(-2px);
+  }
+
+  .ifs-circle-icon-wrapper {
+    position: relative;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background-color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  }
+
+
+  .ifs-progress-ring-svg {
+    position: absolute;
+    top: -3px;
+    left: -3px;
+    width: 66px;
+    height: 66px;
+    pointer-events: none;
+    z-index: 3;
+  }
+
+  .ifs-ring-bg {
+    stroke: rgba(0, 0, 0, 0.05);
+  }
+
+  .ifs-ring-fill {
+    stroke: var(--accent-color);
+    stroke-dasharray: var(--ring-circumference);
+    stroke-dashoffset: var(--ring-circumference);
+    transform: rotate(-90deg);
+    transform-origin: 50% 50%;
+    transition: none;
+  }
+
+
+  .ifs-circle-icon-wrapper img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+    position: relative;
+    z-index: 2;
+  }
+
+  .ifs-circle-icon-wrapper svg.ifs-icon-svg {
+    width: 26px;
+    height: 26px;
+    object-fit: contain;
+    position: relative;
+    z-index: 2;
+  }
+
+  .ifs-tab-label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    color: var(--text-color);
+    opacity: 0.75;
+    white-space: nowrap;
+    transition: opacity 0.3s ease;
+  }
+
+  .ifs-tab-button.active .ifs-tab-label {
+    opacity: 1;
+    color: var(--text-color);
+  }
+
+  @media screen and (max-width: 600px) {
+    .ifs-tabs-bar {
+      gap: 10px;
+      padding: 6px 10px;
+      border-radius: 40px;
+    }
+
+    .ifs-tab-button {
+      min-width: 52px;
+      padding: 2px;
+    }
+
+    .ifs-circle-icon-wrapper {
+      width: 50px;
+      height: 50px;
+      margin-bottom: 6px;
+    }
+
+    .ifs-progress-ring-svg {
+      width: 56px;
+      height: 56px;
+      top: -3px;
+      left: -3px;
+    }
+
+    .ifs-circle-icon-wrapper svg.ifs-icon-svg {
+      width: 22px;
+      height: 22px;
+    }
+
+    .ifs-tab-label {
+      font-size: 10px;
+      letter-spacing: 0.3px;
+    }
+  }
+
+
+  .ifs-active-panel-container {
+    width: 100%;
+    min-height: 130px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .ifs-panel-item {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    animation: ifsFadeIn 0.4s ease forwards;
+    width: 100%;
+  }
+
+  .ifs-panel-item.active {
+    display: flex;
+  }
+
+  @keyframes ifsFadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(6px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .ifs-panel-title {
+    font-size: clamp(18px, 2.5vw, 24px);
+    font-weight: 700;
+    color: var(--text-color);
+    margin: 0 0 8px 0;
+    line-height: 1.3;
+  }
+
+  .ifs-panel-description {
+    font-size: clamp(13px, 1.5vw, 15px);
+    color: var(--subtext-color);
+    margin: 0 0 20px 0;
+    max-width: 440px;
+    line-height: 1.55;
+  }
+
+  @media screen and (min-width: 769px) {
+    .ifs-panel-title {
+      margin-bottom: 10px;
+    }
+    .ifs-panel-description {
+      margin-bottom: 24px;
+    }
+  }
+
+  .ifs-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--btn-bg);
+    color: var(--btn-text);
+    padding: 13px 32px;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    text-decoration: none;
+    border-radius: 6px;
+    transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    max-width: 100%;
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  @media screen and (min-width: 769px) {
+    .ifs-btn {
+      padding: 14px 36px;
+      font-size: 14px;
+      letter-spacing: 1px;
+    }
+  }
+
+  @media screen and (max-width: 480px) {
+    .ifs-btn {
+      width: 100%;
+      max-width: 280px;
+    }
+  }
+
+  .ifs-btn:hover {
+    background-color: var(--btn-hover-bg);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0,0,0,0.12);
+  }
+{%- endstyle -%}
+
+<div class="ifs-section-{{ section.id }}" id="shopify-section-{{ section.id }}-content">
+  <div class="ifs-container-{{ section.id }}">
+    <div class="ifs-grid-{{ section.id }}">
+
+
+      <div class="ifs-main-image-wrapper">
+        {%- for block in section.blocks -%}
+          <div
+            class="ifs-main-image-item {% if forloop.first %}active{% endif %}"
+            data-block-id="{{ block.id }}"
+            {{ block.shopify_attributes }}
+          >
+            {%- if block.settings.main_image != blank -%}
+              <img
+                src="{{ block.settings.main_image | image_url: width: 1000 }}"
+                alt="{{ block.settings.title | escape }}"
+                loading="lazy"
+                width="{{ block.settings.main_image.width }}"
+                height="{{ block.settings.main_image.height }}"
+              >
+            {%- else -%}
+              <div class="ifs-placeholder-svg">
+                {{ 'product-1' | placeholder_svg_tag: 'placeholder-svg' }}
+              </div>
+            {%- endif -%}
+          </div>
+        {%- endfor -%}
+      </div>
+
+
+      <div class="ifs-content-wrapper">
+        {%- if section.settings.heading != blank -%}
+          <h2 class="ifs-section-heading">{{ section.settings.heading }}</h2>
+        {%- endif -%}
+
+        {%- if section.settings.subheading != blank -%}
+          <p class="ifs-section-subheading">{{ section.settings.subheading }}</p>
+        {%- endif -%}
+
+
+        <div class="ifs-tabs-bar-wrapper">
+          <div class="ifs-tabs-bar" role="tablist">
+            {%- for block in section.blocks -%}
+              <button
+                type="button"
+                class="ifs-tab-button {% if forloop.first %}active{% endif %}"
+                data-block-id="{{ block.id }}"
+                data-index="{{ forloop.index0 }}"
+                role="tab"
+                aria-selected="{% if forloop.first %}true{% else %}false{% endif %}"
+                aria-controls="ifs-panel-{{ block.id }}"
+              >
+                <div class="ifs-circle-icon-wrapper">
+
+                  <svg class="ifs-progress-ring-svg" viewBox="0 0 68 68">
+                    <circle class="ifs-ring-bg" cx="34" cy="34" r="29" fill="none" stroke-width="3"/>
+                    <circle class="ifs-ring-fill" cx="34" cy="34" r="29" fill="none" stroke-width="3"/>
+                  </svg>
+
+                  {%- if block.settings.icon != blank -%}
+                    <img
+                      src="{{ block.settings.icon | image_url: width: 200 }}"
+                      alt="{{ block.settings.nav_label | escape }}"
+                      loading="lazy"
+                      width="100"
+                      height="100"
+                    >
+                  {%- else -%}
+                    {%- case forloop.index0 -%}
+                      {%- when 0 -%}
+
+                        <svg class="ifs-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2.5s-4 4.5-4 7.5a4 4 0 0 0 8 0c0-3-4-7.5-4-7.5z"/><path d="M7 16a5 5 0 0 0 10 0"/></svg>
+                      {%- when 1 -%}
+
+                        <svg class="ifs-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 22C6.5 22 2 17.5 2 12S6.5 2 12 2s10 4.5 10 10-4.5 10-10 10z"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><circle cx="9" cy="9" r="1.2" fill="currentColor"/><circle cx="15" cy="9" r="1.2" fill="currentColor"/></svg>
+                      {%- when 2 -%}
+
+                        <svg class="ifs-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 14h16v4a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-4z"/><path d="M8 10V6a2 2 0 0 1 4 0v4"/><path d="M12 10V7a2 2 0 0 1 4 0v3"/></svg>
+                      {%- when 3 -%}
+
+                        <svg class="ifs-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                      {%- when 4 -%}
+
+                        <svg class="ifs-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="5" y="3" width="6" height="18" rx="2"/><path d="M14 6h5v12h-5M19 9h-3M19 12h-3M19 15h-3"/></svg>
+                      {%- else -%}
+                        <svg class="ifs-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/></svg>
+                    {%- endcase -%}
+                  {%- endif -%}
+                </div>
+                <span class="ifs-tab-label">{{ block.settings.nav_label }}</span>
+              </button>
+            {%- endfor -%}
+          </div>
+        </div>
+
+
+        <div class="ifs-active-panel-container">
+          {%- for block in section.blocks -%}
+            <div
+              class="ifs-panel-item {% if forloop.first %}active{% endif %}"
+              id="ifs-panel-{{ block.id }}"
+              data-block-id="{{ block.id }}"
+              role="tabpanel"
+            >
+              {%- if block.settings.title != blank -%}
+                <h3 class="ifs-panel-title">{{ block.settings.title }}</h3>
+              {%- endif -%}
+
+              {%- if block.settings.description != blank -%}
+                <p class="ifs-panel-description">{{ block.settings.description }}</p>
+              {%- endif -%}
+
+              {%- if block.settings.button_text != blank -%}
+                <a href="{{ block.settings.button_link | default: '#' }}" class="ifs-btn">
+                  {{ block.settings.button_text }}
+                </a>
+              {%- endif -%}
+            </div>
+          {%- endfor -%}
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+  (function() {
+    function initIFSSection(sectionId) {
+      const sectionContainer = document.getElementById('shopify-section-' + sectionId + '-content');
+      if (!sectionContainer) return;
+
+      const tabButtons = Array.from(sectionContainer.querySelectorAll('.ifs-tab-button'));
+      const imageItems = Array.from(sectionContainer.querySelectorAll('.ifs-main-image-item'));
+      const panelItems = Array.from(sectionContainer.querySelectorAll('.ifs-panel-item'));
+      const tabsBar = sectionContainer.querySelector('.ifs-tabs-bar');
+      const isAutoplayEnabled = {{ section.settings.enable_autoplay | json }};
+      const autoplayDuration = {{ section.settings.autoplay_speed | default: 5 }} * 1000;
+      const ringCircumference = 182.21;
+
+      let autoplayTimer = null;
+      let currentIndex = 0;
+
+      function resetRings() {
+        tabButtons.forEach(btn => {
+          const ringFill = btn.querySelector('.ifs-ring-fill');
+          if (ringFill) {
+            ringFill.style.transition = 'none';
+            ringFill.style.strokeDashoffset = ringCircumference;
+          }
+        });
+      }
+
+      function scrollTabIntoCenter(targetBtn) {
+        if (tabsBar && tabsBar.scrollWidth > tabsBar.clientWidth) {
+          const btnLeft = targetBtn.offsetLeft;
+          const btnWidth = targetBtn.offsetWidth;
+          const barWidth = tabsBar.clientWidth;
+          tabsBar.scrollTo({
+            left: btnLeft - (barWidth / 2) + (btnWidth / 2),
+            behavior: 'smooth'
+          });
+        }
+      }
+
+      function activateTab(index) {
+        if (index < 0 || index >= tabButtons.length) return;
+        currentIndex = index;
+        const targetBtn = tabButtons[index];
+        const blockId = targetBtn.getAttribute('data-block-id');
+
+        if (autoplayTimer) clearTimeout(autoplayTimer);
+
+        resetRings();
+
+
+        tabButtons.forEach((btn, i) => {
+          const isMatch = i === index;
+          btn.classList.toggle('active', isMatch);
+          btn.setAttribute('aria-selected', isMatch ? 'true' : 'false');
+        });
+
+        imageItems.forEach(img => {
+          const isMatch = img.getAttribute('data-block-id') === blockId;
+          img.classList.toggle('active', isMatch);
+        });
+
+        panelItems.forEach(panel => {
+          const isMatch = panel.getAttribute('data-block-id') === blockId;
+          panel.classList.toggle('active', isMatch);
+        });
+
+
+        scrollTabIntoCenter(targetBtn);
+
+
+        if (isAutoplayEnabled && tabButtons.length > 1) {
+          const activeRing = targetBtn.querySelector('.ifs-ring-fill');
+          if (activeRing) {
+            void activeRing.offsetWidth;
+            activeRing.style.transition = `stroke-dashoffset ${autoplayDuration}ms linear`;
+            activeRing.style.strokeDashoffset = '0';
+          }
+
+
+          autoplayTimer = setTimeout(() => {
+            const nextIndex = (currentIndex + 1) % tabButtons.length;
+            activateTab(nextIndex);
+          }, autoplayDuration);
+        }
+      }
+
+      tabButtons.forEach((button, index) => {
+        button.addEventListener('click', function() {
+          activateTab(index);
+        });
+      });
+
+
+      activateTab(0);
+
+
+      if (window.Shopify && Shopify.designMode) {
+        document.addEventListener('shopify:block:select', function(event) {
+          if (event.detail.sectionId === sectionId) {
+            const selectedBtnIndex = tabButtons.findIndex(b => b.getAttribute('data-block-id') === event.detail.blockId);
+            if (selectedBtnIndex !== -1) {
+              activateTab(selectedBtnIndex);
+            }
+          }
+        });
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+      initIFSSection('{{ section.id }}');
+    });
+
+    if (window.Shopify && Shopify.designMode) {
+      initIFSSection('{{ section.id }}');
+    }
+  })();
+</script>
+
+{% schema %}
+{
+  "name": "Interactive Showcase",
+  "tag": "section",
+  "class": "section",
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Section Heading",
+      "default": "Your Ultimate Self-Care Routine"
+    },
+    {
+      "type": "textarea",
+      "id": "subheading",
+      "label": "Section Subheading",
+      "default": "Nourish your body, skin, and mind effortlessly with our curated beauty essentials."
+    },
+    {
+      "type": "header",
+      "content": "Autoplay & Timer Ring"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_autoplay",
+      "label": "Enable Auto-Timer Loop",
+      "default": true
+    },
+    {
+      "type": "range",
+      "id": "autoplay_speed",
+      "min": 3,
+      "max": 15,
+      "step": 1,
+      "unit": "s",
+      "label": "Timer Speed per Circle",
+      "default": 5
+    },
+    {
+      "type": "header",
+      "content": "Layout Settings"
+    },
+    {
+      "type": "range",
+      "id": "max_width",
+      "min": 800,
+      "max": 1400,
+      "step": 20,
+      "unit": "px",
+      "label": "Maximum Width",
+      "default": 1200
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "label": "Top Padding",
+      "default": 48
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "label": "Bottom Padding",
+      "default": 48
+    },
+    {
+      "type": "header",
+      "content": "Color Customization"
+    },
+    {
+      "type": "color",
+      "id": "bg_color",
+      "label": "Background Color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "Heading & Label Color",
+      "default": "#262626"
+    },
+    {
+      "type": "color",
+      "id": "subtext_color",
+      "label": "Description Color",
+      "default": "#555555"
+    },
+    {
+      "type": "color",
+      "id": "pill_bg",
+      "label": "Tabs Bar Background",
+      "default": "#e6f1ea"
+    },
+    {
+      "type": "color",
+      "id": "accent_color",
+      "label": "Active Timer Ring Color",
+      "default": "#4b9a6a"
+    },
+    {
+      "type": "color",
+      "id": "btn_bg",
+      "label": "Button Background Color",
+      "default": "#559f71"
+    },
+    {
+      "type": "color",
+      "id": "btn_text",
+      "label": "Button Text Color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "btn_hover_bg",
+      "label": "Button Hover Color",
+      "default": "#44835c"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "feature_tab",
+      "name": "Feature Item",
+      "settings": [
+        {
+          "type": "text",
+          "id": "nav_label",
+          "label": "Circle Icon Label",
+          "default": "Nails"
+        },
+        {
+          "type": "image_picker",
+          "id": "icon",
+          "label": "Circle Small Image/Icon"
+        },
+        {
+          "type": "image_picker",
+          "id": "main_image",
+          "label": "Big Main Display Image"
+        },
+        {
+          "type": "text",
+          "id": "title",
+          "label": "Active Content Title",
+          "default": "Nail Care"
+        },
+        {
+          "type": "textarea",
+          "id": "description",
+          "label": "Active Content Description",
+          "default": "Strengthen, nourish, and pamper your nails with luxury cuticle oils and salon-grade treatments."
+        },
+        {
+          "type": "text",
+          "id": "button_text",
+          "label": "Button Text",
+          "default": "SHOP NOW"
+        },
+        {
+          "type": "url",
+          "id": "button_link",
+          "label": "Button Link"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Interactive Showcase",
+      "blocks": [
+        {
+          "type": "feature_tab",
+          "settings": {
+            "nav_label": "NAILS",
+            "title": "Nail Care",
+            "description": "Strengthen, nourish, and pamper your nails with luxury cuticle oils and salon-grade treatments.",
+            "button_text": "SHOP NAIL CARE"
+          }
+        },
+        {
+          "type": "feature_tab",
+          "settings": {
+            "nav_label": "SKIN CARE",
+            "title": "Skin Care",
+            "description": "Hydrate and rejuvenate your skin with organic serums and deep moisturizing botanical treatments.",
+            "button_text": "SHOP SKIN CARE"
+          }
+        },
+        {
+          "type": "feature_tab",
+          "settings": {
+            "nav_label": "FOOT CARE",
+            "title": "Foot Care",
+            "description": "Soothe tired feet with gentle exfoliating scrubs and deeply restoring moisturizing heel balms.",
+            "button_text": "SHOP FOOT CARE"
+          }
+        },
+        {
+          "type": "feature_tab",
+          "settings": {
+            "nav_label": "EYE CARE",
+            "title": "Eye Care",
+            "description": "Reduce puffiness and dark circles with gentle, hydrating eye creams and cooling hydrogel masks.",
+            "button_text": "SHOP EYE CARE"
+          }
+        },
+        {
+          "type": "feature_tab",
+          "settings": {
+            "nav_label": "HAIR CARE",
+            "title": "Hair Care",
+            "description": "Revitalize your locks with botanical hair oils and deep conditioning masks for radiant, healthy shine.",
+            "button_text": "SHOP HAIR CARE"
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

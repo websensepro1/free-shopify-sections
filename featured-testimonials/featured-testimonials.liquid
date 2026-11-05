@@ -1,0 +1,1387 @@
+{%- style -%}
+  {%- if section.settings.font_family != blank -%}
+    {{ section.settings.font_family | font_face: font_display: 'swap' }}
+  {%- endif -%}
+
+  #shopify-section-{{ section.id }} {
+    --bg-color: {{ section.settings.bg_color }};
+    --heading-color: {{ section.settings.heading_color }};
+    --subtext-color: {{ section.settings.subtext_color }};
+    --active-card-bg: {{ section.settings.active_card_bg }};
+    --dull-card-bg: {{ section.settings.dull_card_bg }};
+    --active-text-color: {{ section.settings.active_text_color }};
+    --dull-text-color: {{ section.settings.dull_text_color }};
+    --star-color: {{ section.settings.star_color }};
+    --star-bg-color: {{ section.settings.star_bg_color }};
+    --star-empty-bg: {{ section.settings.star_empty_bg | default: '#dbdbdb' }};
+    --card-radius: {{ section.settings.card_border_radius }}px;
+    --btn-bg: {{ section.settings.btn_bg }};
+    --btn-text: {{ section.settings.btn_text }};
+    --btn-hover-bg: {{ section.settings.btn_hover_bg }};
+    --nav-btn-bg: {{ section.settings.nav_btn_bg }};
+    --nav-btn-text: {{ section.settings.nav_btn_text }};
+    --pt: {{ section.settings.padding_top }}px;
+    --pb: {{ section.settings.padding_bottom }}px;
+
+    /* Font Family & Typography Variables */
+    --section-font: {% if section.settings.custom_font_family != 'inherit' %}{{ section.settings.custom_font_family }}{% else %}{{ section.settings.font_family.family | default: 'inherit' }}, {{ section.settings.font_family.fallback_families | default: 'sans-serif' }}{% endif %};
+    --heading-size: {{ section.settings.heading_size }}px;
+    --heading-style: {{ section.settings.heading_style | default: 'normal' }};
+    --heading-decoration: {{ section.settings.heading_decoration | default: 'none' }};
+    --card-title-size: {{ section.settings.card_title_size }}px;
+    --card-title-style: {{ section.settings.card_title_style | default: 'normal' }};
+    --card-title-decoration: {{ section.settings.card_title_decoration | default: 'none' }};
+    --card-body-size: {{ section.settings.card_body_size }}px;
+    --card-body-style: {{ section.settings.card_body_style | default: 'normal' }};
+    --card-body-decoration: {{ section.settings.card_body_decoration | default: 'none' }};
+  }
+
+  .tc-section-{{ section.id }} {
+    background: {{ section.settings.bg_gradient | default: section.settings.bg_color }};
+    padding-top: var(--pt);
+    padding-bottom: var(--pb);
+    width: 100%;
+    box-sizing: border-box;
+    font-family: var(--section-font);
+    text-align: center;
+    overflow-x: hidden;
+  }
+
+  .tc-container-{{ section.id }} {
+    max-width: {{ section.settings.max_width }}px;
+    margin: 0 auto;
+    padding: 0 20px;
+    box-sizing: border-box;
+  }
+
+  /* Header Section */
+  .tc-heading-{{ section.id }} {
+    font-size: var(--heading-size);
+    font-style: var(--heading-style);
+    text-decoration: var(--heading-decoration);
+    font-weight: 800;
+    color: var(--heading-color);
+    margin: 0 0 16px 0;
+    line-height: 1.25;
+  }
+
+  .tc-rating-badge {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 36px;
+  }
+
+  .tc-rating-top {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--heading-color);
+  }
+
+  .tc-stars-row {
+    display: flex;
+    gap: 3px;
+  }
+
+  .tc-star-box {
+    background-color: var(--star-bg-color);
+    color: var(--star-color);
+    font-size: 11px;
+    width: 20px;
+    height: 20px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .tc-star-box.tc-star-empty {
+    background-color: var(--star-empty-bg);
+  }
+
+  .tc-rating-sub {
+    font-size: 14px;
+    color: var(--subtext-color);
+  }
+
+  .tc-rating-sub strong {
+    font-weight: 700;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  /* Carousel Track Wrapper */
+  .tc-carousel-wrapper {
+    position: relative;
+    width: 100%;
+    max-width: 1300px;
+    margin: 0 auto 36px auto;
+    padding: 10px 0;
+  }
+
+  .tc-carousel-viewport {
+    width: 100%;
+    overflow: hidden;
+    padding: 20px 0;
+    cursor: grab;
+    touch-action: pan-y;
+  }
+
+  .tc-carousel-viewport:active {
+    cursor: grabbing;
+  }
+
+  .tc-carousel-track {
+    display: flex;
+    align-items: center;
+    will-change: transform;
+  }
+
+  /* Testimonial Card Styling */
+  .tc-card {
+    flex: 0 0 280px;
+    max-width: 280px;
+    margin: 0 12px;
+    background-color: var(--dull-card-bg);
+    border-radius: var(--card-radius);
+    padding: 32px 24px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    opacity: 0.65;
+    transform: scale(0.94);
+    transition: all 0.45s cubic-bezier(0.25, 1, 0.5, 1);
+    {% if section.settings.enable_card_shadow %}
+      box-shadow: 0 4px 16px rgba(0,0,0,0.03);
+    {% else %}
+      box-shadow: none;
+    {% endif %}
+    cursor: pointer;
+    user-select: none;
+  }
+
+  @media screen and (min-width: 768px) {
+    .tc-card {
+      flex: 0 0 310px;
+      max-width: 310px;
+    }
+  }
+
+  /* PROMINENT CENTER CARD */
+  .tc-card.active-center {
+    background-color: var(--active-card-bg);
+    opacity: 1;
+    transform: scale(1.06);
+    {% if section.settings.enable_card_shadow %}
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.08);
+    {% else %}
+      box-shadow: none;
+    {% endif %}
+    z-index: 3;
+  }
+
+  .tc-card-stars {
+    display: flex;
+    gap: 3px;
+    margin-bottom: 18px;
+  }
+
+  .tc-card-title {
+    font-size: var(--card-title-size);
+    font-style: var(--card-title-style);
+    text-decoration: var(--card-title-decoration);
+    font-weight: 700;
+    color: var(--dull-text-color);
+    margin: 0 0 14px 0;
+    line-height: 1.3;
+    transition: color 0.3s ease;
+  }
+
+  .tc-card.active-center .tc-card-title {
+    color: var(--active-text-color);
+  }
+
+  .tc-card-body {
+    font-size: var(--card-body-size);
+    font-style: var(--card-body-style);
+    text-decoration: var(--card-body-decoration);
+    line-height: 1.55;
+    color: var(--dull-text-color);
+    margin: 0 0 24px 0;
+    flex-grow: 1;
+    transition: color 0.3s ease;
+  }
+
+  .tc-card.active-center .tc-card-body {
+    color: var(--active-text-color);
+  }
+
+  .tc-card-author {
+    font-size: 13px;
+    color: var(--dull-text-color);
+    opacity: 0.8;
+    font-weight: 500;
+    transition: color 0.3s ease, opacity 0.3s ease;
+  }
+
+  .tc-card.active-center .tc-card-author {
+    color: var(--active-text-color);
+    opacity: 0.9;
+    font-weight: 600;
+  }
+
+  /* Navigation Buttons */
+  .tc-nav-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background-color: var(--nav-btn-bg);
+    color: var(--nav-btn-text);
+    border: none;
+    {% if section.settings.enable_card_shadow %}
+      box-shadow: 0 4px 14px rgba(0,0,0,0.12);
+    {% else %}
+      box-shadow: none;
+    {% endif %}
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 10;
+    transition: all 0.2s ease;
+  }
+
+  .tc-nav-btn:hover {
+    transform: translateY(-50%) scale(1.08);
+    {% if section.settings.enable_card_shadow %}
+      box-shadow: 0 6px 18px rgba(0,0,0,0.16);
+    {% endif %}
+  }
+
+  .tc-nav-prev {
+    left: 10px;
+  }
+
+  .tc-nav-next {
+    right: 10px;
+  }
+
+  @media screen and (min-width: 992px) {
+    .tc-nav-prev {
+      left: 18%;
+    }
+    .tc-nav-next {
+      right: 18%;
+    }
+  }
+
+  /* Bottom View All Button */
+  .tc-view-all-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--btn-bg);
+    color: var(--btn-text);
+    padding: 14px 40px;
+    font-size: 14px;
+    font-weight: 700;
+    border-radius: 8px;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    {% if section.settings.enable_card_shadow %}
+      box-shadow: 0 4px 14px rgba(0,0,0,0.1);
+    {% endif %}
+  }
+
+  .tc-view-all-btn:hover {
+    background-color: var(--btn-hover-bg);
+    transform: translateY(-2px);
+    {% if section.settings.enable_card_shadow %}
+      box-shadow: 0 6px 20px rgba(0,0,0,0.16);
+    {% endif %}
+  }
+
+  /* Floating Sticky Video Widget Styling */
+  .tc-floating-video-wrap {
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    z-index: 9999;
+    width: 110px;
+    height: 160px;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+    transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+    cursor: pointer;
+    background-color: #000000;
+  }
+
+  .tc-floating-video-wrap.pos-bottom-right {
+    left: auto;
+    right: 20px;
+  }
+
+  .tc-floating-video-wrap.is-expanded {
+    width: 300px;
+    height: 480px;
+    max-width: calc(100vw - 40px);
+    max-height: calc(100vh - 40px);
+    border-radius: 16px;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+  }
+
+  .tc-floating-video-wrap.is-closed {
+    display: none !important;
+  }
+
+  .tc-floating-video-el {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .tc-floating-close-btn {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.65);
+    color: #ffffff;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: bold;
+    cursor: pointer;
+    z-index: 10;
+    transition: background 0.2s ease, transform 0.2s ease;
+  }
+
+  .tc-floating-close-btn:hover {
+    background: rgba(0, 0, 0, 0.9);
+    transform: scale(1.1);
+  }
+
+  .tc-floating-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 20px 16px;
+    background: linear-gradient(0deg, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.4) 60%, transparent 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+    z-index: 5;
+  }
+
+  .tc-floating-video-wrap.is-expanded .tc-floating-overlay {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .tc-floating-title {
+    color: #ffffff;
+    font-size: 14px;
+    font-weight: 800;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin: 0;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+  }
+
+  .tc-floating-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    padding: 12px 20px;
+    background-color: var(--btn-bg);
+    color: var(--btn-text);
+    border: 1px solid rgba(255,255,255,0.4);
+    border-radius: 30px;
+    font-size: 13px;
+    font-weight: 700;
+    text-decoration: none;
+    transition: all 0.25s ease;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.2);
+    cursor: pointer;
+  }
+
+  .tc-floating-btn:hover {
+    background-color: var(--btn-hover-bg);
+    transform: translateY(-2px);
+  }
+
+  .tc-floating-btn svg, .tc-floating-btn img {
+    width: 20px;
+    height: 20px;
+    object-fit: contain;
+  }
+{%- endstyle -%}
+
+<div class="tc-section-{{ section.id }}" id="shopify-section-{{ section.id }}-content">
+  <div class="tc-container-{{ section.id }}">
+
+    {%- if section.settings.heading != blank -%}
+      <h2 class="tc-heading-{{ section.id }}">{{ section.settings.heading }}</h2>
+    {%- endif -%}
+
+    {%- if section.settings.show_rating_badge -%}
+      <div class="tc-rating-badge">
+        <div class="tc-rating-top">
+          <span>{{ section.settings.rating_prefix }} <strong>{{ section.settings.rating_score }}</strong></span>
+          <div class="tc-stars-row">
+            {%- assign badge_r = section.settings.badge_rating | default: 4.7 | plus: 0.0 -%}
+            {%- for i in (1..5) -%}
+              {%- assign star_min = i | minus: 1.0 -%}
+              {%- if badge_r >= i -%}
+                <span class="tc-star-box tc-star-full">★</span>
+              {%- elsif badge_r <= star_min -%}
+                <span class="tc-star-box tc-star-empty">★</span>
+              {%- else -%}
+                {%- assign fraction = badge_r | minus: star_min -%}
+                {%- assign fill_pct = fraction | times: 100 | round -%}
+                <span class="tc-star-box tc-star-partial" style="background: linear-gradient(90deg, var(--star-bg-color) {{ fill_pct }}%, var(--star-empty-bg) {{ fill_pct }}%);">★</span>
+              {%- endif -%}
+            {%- endfor -%}
+          </div>
+        </div>
+        {%- if section.settings.rating_subtext != blank -%}
+          <div class="tc-rating-sub">
+            {{ section.settings.rating_subtext }}
+          </div>
+        {%- endif -%}
+      </div>
+    {%- endif -%}
+
+  </div>
+
+  <!-- Testimonials Carousel Slider -->
+  <div class="tc-carousel-wrapper">
+    <button type="button" class="tc-nav-btn tc-nav-prev" aria-label="Previous Review">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+    </button>
+
+    <button type="button" class="tc-nav-btn tc-nav-next" aria-label="Next Review">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+    </button>
+
+    <div class="tc-carousel-viewport">
+      <div class="tc-carousel-track" id="tcTrack-{{ section.id }}">
+
+        {%- for block in section.blocks -%}
+          <div class="tc-card" data-block-id="{{ block.id }}" data-index="{{ forloop.index0 }}" {{ block.shopify_attributes }}>
+            <div class="tc-card-stars">
+              {%- assign card_r = block.settings.rating | default: 5 | plus: 0.0 -%}
+              {%- for i in (1..5) -%}
+                {%- assign star_min = i | minus: 1.0 -%}
+                {%- if card_r >= i -%}
+                  <span class="tc-star-box tc-star-full">★</span>
+                {%- elsif card_r <= star_min -%}
+                  <span class="tc-star-box tc-star-empty">★</span>
+                {%- else -%}
+                  {%- assign fraction = card_r | minus: star_min -%}
+                  {%- assign fill_pct = fraction | times: 100 | round -%}
+                  <span class="tc-star-box tc-star-partial" style="background: linear-gradient(90deg, var(--star-bg-color) {{ fill_pct }}%, var(--star-empty-bg) {{ fill_pct }}%);">★</span>
+                {%- endif -%}
+              {%- endfor -%}
+            </div>
+
+            {%- if block.settings.title != blank -%}
+              <h3 class="tc-card-title">{{ block.settings.title }}</h3>
+            {%- endif -%}
+
+            {%- if block.settings.review_text != blank -%}
+              <p class="tc-card-body">{{ block.settings.review_text }}</p>
+            {%- endif -%}
+
+            {%- if block.settings.author_name != blank -%}
+              <div class="tc-card-author">
+                {{ block.settings.author_name }}{% if block.settings.review_date != blank %} - {{ block.settings.review_date }}{% endif %}
+              </div>
+            {%- endif -%}
+          </div>
+        {%- endfor -%}
+
+      </div>
+    </div>
+  </div>
+
+  {%- if section.settings.button_text != blank -%}
+    <div class="tc-container-{{ section.id }}">
+      <a href="{{ section.settings.button_link | default: '#' }}" class="tc-view-all-btn">
+        {{ section.settings.button_text }}
+      </a>
+    </div>
+  {%- endif -%}
+
+  <!-- Floating Sticky Video Widget -->
+  {%- if section.settings.enable_floating_video -%}
+    <div class="tc-floating-video-wrap pos-{{ section.settings.floating_video_position | default: 'bottom-left' | replace: '_', '-' }}" id="tcFloatingVideo-{{ section.id }}">
+      <button type="button" class="tc-floating-close-btn" aria-label="Close Video">✕</button>
+
+      {%- if section.settings.floating_video_shopify != blank -%}
+        {{ section.settings.floating_video_shopify | video_tag: autoplay: section.settings.floating_video_autoplay, loop: section.settings.floating_video_loop, muted: section.settings.floating_video_muted, playsinline: true, controls: section.settings.floating_video_controls, class: 'tc-floating-video-el', poster: section.settings.floating_video_poster }}
+      {%- else -%}
+        <video class="tc-floating-video-el"
+          {% if section.settings.floating_video_autoplay %}autoplay{% endif %}
+          {% if section.settings.floating_video_loop %}loop{% endif %}
+          {% if section.settings.floating_video_muted %}muted{% endif %}
+          {% if section.settings.floating_video_controls %}controls{% endif %}
+          playsinline
+          {% if section.settings.floating_video_poster != blank %}poster="{{ section.settings.floating_video_poster | image_url }}"{% endif %}>
+          <source src="{{ section.settings.floating_video_url | default: 'https://assets.mixkit.co/videos/preview/mixkit-woman-applying-face-cream-41584-large.mp4' }}" type="video/mp4">
+        </video>
+      {%- endif -%}
+
+      <div class="tc-floating-overlay">
+        {%- if section.settings.floating_video_title != blank -%}
+          <h4 class="tc-floating-title">{{ section.settings.floating_video_title }}</h4>
+        {%- endif -%}
+        {%- if section.settings.floating_video_btn_text != blank -%}
+          <a href="{{ section.settings.floating_video_btn_link | default: '#shopify-section-' | append: section.id }}" class="tc-floating-btn" id="tcFloatingBtn-{{ section.id }}">
+            <span>{{ section.settings.floating_video_btn_text }}</span>
+          </a>
+        {%- endif -%}
+      </div>
+    </div>
+  {%- endif -%}
+</div>
+
+<script>
+  (function() {
+    function initTCCarousel(sectionId) {
+      const sectionContainer = document.getElementById('shopify-section-' + sectionId + '-content');
+      if (!sectionContainer) return;
+
+      const track = sectionContainer.querySelector('#tcTrack-' + sectionId);
+      if (!track) return;
+      const viewport = track.parentElement;
+
+      const originalCards = Array.from(track.querySelectorAll('.tc-card'));
+      const N = originalCards.length;
+      if (N === 0) return;
+
+      const prevBtn = sectionContainer.querySelector('.tc-nav-prev');
+      const nextBtn = sectionContainer.querySelector('.tc-nav-next');
+      const isAutoplayEnabled = {{ section.settings.enable_autoplay | json }};
+      const autoplayDuration = {{ section.settings.autoplay_speed | default: 5 }} * 1000;
+
+      let allCards = originalCards;
+      let currentIndex = Math.floor(N / 2);
+      let autoplayTimer = null;
+
+      if (N > 1) {
+        // Seamless Infinite Circular Loop Setup (Clone Cards)
+        originalCards.forEach(card => {
+          const clone = card.cloneNode(true);
+          clone.classList.add('is-clone');
+          track.appendChild(clone);
+        });
+
+        originalCards.slice().reverse().forEach(card => {
+          const clone = card.cloneNode(true);
+          clone.classList.add('is-clone');
+          track.insertBefore(clone, track.firstChild);
+        });
+
+        allCards = Array.from(track.querySelectorAll('.tc-card'));
+        currentIndex = N + Math.floor(N / 2);
+
+        track.addEventListener('transitionend', function() {
+          if (currentIndex >= 2 * N) {
+            currentIndex = currentIndex - N;
+            updateCarousel(false);
+          } else if (currentIndex < N) {
+            currentIndex = currentIndex + N;
+            updateCarousel(false);
+          }
+        });
+      }
+
+      function updateCarousel(animate = true) {
+        if (allCards.length === 0) return;
+        const viewportWidth = viewport.offsetWidth;
+        const activeCard = allCards[currentIndex];
+        if (!activeCard) return;
+
+        if (animate) {
+          track.style.transition = 'transform 0.45s cubic-bezier(0.25, 1, 0.5, 1)';
+        } else {
+          track.style.transition = 'none';
+        }
+
+        const cardOffsetLeft = activeCard.offsetLeft;
+        const cardWidth = activeCard.offsetWidth;
+
+        // Calculate translation offset to center active card in viewport
+        const translateX = (viewportWidth / 2) - (cardOffsetLeft + (cardWidth / 2));
+        track.style.transform = `translateX(${translateX}px)`;
+
+        // Highlight active center card
+        allCards.forEach((card, idx) => {
+          card.classList.toggle('active-center', idx === currentIndex);
+        });
+
+        startAutoplay();
+      }
+
+      function startAutoplay() {
+        if (autoplayTimer) clearTimeout(autoplayTimer);
+        if (isAutoplayEnabled && N > 1) {
+          autoplayTimer = setTimeout(() => {
+            if (currentIndex >= 2 * N) {
+              currentIndex = currentIndex - N;
+              updateCarousel(false);
+              track.offsetHeight; // Force reflow
+            }
+            currentIndex++;
+            updateCarousel(true);
+          }, autoplayDuration);
+        }
+      }
+
+      // Touch & Mouse Drag / Swipe Handlers
+      let startX = 0;
+      let currentX = 0;
+      let isDragging = false;
+
+      function onDragStart(e) {
+        if (N <= 1) return;
+        isDragging = true;
+        startX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
+        currentX = startX;
+        if (autoplayTimer) clearTimeout(autoplayTimer);
+      }
+
+      function onDragMove(e) {
+        if (!isDragging) return;
+        currentX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
+      }
+
+      function onDragEnd() {
+        if (!isDragging) return;
+        isDragging = false;
+        const diffX = currentX - startX;
+
+        if (Math.abs(diffX) > 35) {
+          if (diffX < 0) {
+            // Dragged Left -> Next
+            if (currentIndex >= 2 * N) {
+              currentIndex = currentIndex - N;
+              updateCarousel(false);
+              track.offsetHeight;
+            }
+            currentIndex++;
+          } else {
+            // Dragged Right -> Prev
+            if (currentIndex < N) {
+              currentIndex = currentIndex + N;
+              updateCarousel(false);
+              track.offsetHeight;
+            }
+            currentIndex--;
+          }
+          updateCarousel(true);
+        } else {
+          updateCarousel(true);
+        }
+        startX = 0;
+        currentX = 0;
+      }
+
+      viewport.addEventListener('touchstart', onDragStart, { passive: true });
+      viewport.addEventListener('touchmove', onDragMove, { passive: true });
+      viewport.addEventListener('touchend', onDragEnd);
+
+      viewport.addEventListener('mousedown', onDragStart);
+      window.addEventListener('mousemove', onDragMove);
+      window.addEventListener('mouseup', onDragEnd);
+
+      if (prevBtn && N > 1) {
+        prevBtn.addEventListener('click', function(e) {
+          e.preventDefault();
+          if (currentIndex < N) {
+            currentIndex = currentIndex + N;
+            updateCarousel(false);
+            track.offsetHeight;
+          }
+          currentIndex--;
+          updateCarousel(true);
+        });
+      }
+
+      if (nextBtn && N > 1) {
+        nextBtn.addEventListener('click', function(e) {
+          e.preventDefault();
+          if (currentIndex >= 2 * N) {
+            currentIndex = currentIndex - N;
+            updateCarousel(false);
+            track.offsetHeight;
+          }
+          currentIndex++;
+          updateCarousel(true);
+        });
+      }
+
+      allCards.forEach((card, idx) => {
+        card.addEventListener('click', function() {
+          if (currentIndex !== idx) {
+            currentIndex = idx;
+            updateCarousel(true);
+          }
+        });
+      });
+
+      // Floating Sticky Video Click & Expand Logic
+      const videoWrap = sectionContainer.querySelector('#tcFloatingVideo-' + sectionId);
+      if (videoWrap) {
+        const videoEl = videoWrap.querySelector('video');
+
+        videoWrap.addEventListener('click', function(e) {
+          if (e.target.closest('.tc-floating-close-btn')) {
+            e.stopPropagation();
+            videoWrap.classList.add('is-closed');
+            if (videoEl) videoEl.pause();
+            return;
+          }
+
+          const ctaBtn = e.target.closest('.tc-floating-btn');
+          if (ctaBtn) {
+            e.stopPropagation();
+            const targetHref = ctaBtn.getAttribute('href');
+            if (!targetHref || targetHref === '#' || targetHref.startsWith('#shopify-section-')) {
+              e.preventDefault();
+              sectionContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+            return;
+          }
+
+          const isExpanded = videoWrap.classList.toggle('is-expanded');
+          if (videoEl) {
+            if (isExpanded) {
+              videoEl.muted = false;
+              videoEl.play().catch(() => {});
+            } else {
+              {% if section.settings.floating_video_muted %}
+                videoEl.muted = true;
+              {% endif %}
+            }
+          }
+        });
+      }
+
+      window.addEventListener('resize', function() {
+        updateCarousel(false);
+      });
+
+      setTimeout(function() {
+        updateCarousel(false);
+      }, 60);
+
+      // Shopify Admin Live Editor Preview Sync
+      if (window.Shopify && Shopify.designMode) {
+        document.addEventListener('shopify:block:select', function(event) {
+          if (event.detail.sectionId === sectionId) {
+            const selectedBlockId = event.detail.blockId;
+            const realIdx = originalCards.findIndex(c => c.getAttribute('data-block-id') === event.detail.blockId);
+            if (realIdx !== -1) {
+              currentIndex = N + realIdx;
+              updateCarousel(true);
+            }
+          }
+        });
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+      initTCCarousel('{{ section.id }}');
+    });
+
+    if (window.Shopify && Shopify.designMode) {
+      initTCCarousel('{{ section.id }}');
+    }
+  })();
+</script>
+
+{% schema %}
+{
+  "name": "Featured Testimonials",
+  "tag": "section",
+  "class": "section",
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Section Main Heading",
+      "default": "Our customers tell it better than we do!"
+    },
+    {
+      "type": "header",
+      "content": "Rating Badge Settings"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_rating_badge",
+      "label": "Show Rating Badge Top",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "rating_prefix",
+      "label": "Rating Prefix Text",
+      "default": "Excellent"
+    },
+    {
+      "type": "text",
+      "id": "rating_score",
+      "label": "Rating Score Text",
+      "default": "4.7 / 5"
+    },
+    {
+      "type": "range",
+      "id": "badge_rating",
+      "min": 1,
+      "max": 5,
+      "step": 0.1,
+      "label": "Badge Star Visual Rating (e.g. 4.7, 4.5)",
+      "default": 4.7
+    },
+    {
+      "type": "inline_richtext",
+      "id": "rating_subtext",
+      "label": "Rating Subtitle Text",
+      "default": "based on <strong>12 067 reviews</strong>"
+    },
+    {
+      "type": "header",
+      "content": "Floating Sticky Video Widget"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_floating_video",
+      "label": "Enable Floating Video Widget",
+      "default": true
+    },
+    {
+      "type": "select",
+      "id": "floating_video_position",
+      "label": "Floating Video Position",
+      "options": [
+        { "value": "bottom_left", "label": "Bottom Left" },
+        { "value": "bottom_right", "label": "Bottom Right" }
+      ],
+      "default": "bottom_left"
+    },
+    {
+      "type": "video",
+      "id": "floating_video_shopify",
+      "label": "Select Shopify Uploaded Video"
+    },
+    {
+      "type": "text",
+      "id": "floating_video_url",
+      "label": "Or External MP4 Video URL",
+      "default": "https://assets.mixkit.co/videos/preview/mixkit-woman-applying-face-cream-41584-large.mp4"
+    },
+    {
+      "type": "image_picker",
+      "id": "floating_video_poster",
+      "label": "Video Poster Thumbnail Image"
+    },
+    {
+      "type": "header",
+      "content": "Video Playback Controls"
+    },
+    {
+      "type": "checkbox",
+      "id": "floating_video_autoplay",
+      "label": "Autoplay Video Automatically",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "floating_video_loop",
+      "label": "Loop Video Continuously",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "floating_video_muted",
+      "label": "Mute Video on Load",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "floating_video_controls",
+      "label": "Show Browser Video Controls Bar",
+      "default": false
+    },
+    {
+      "type": "header",
+      "content": "Floating Video Overlay Text & Button"
+    },
+    {
+      "type": "text",
+      "id": "floating_video_title",
+      "label": "Expanded Video Overlay Title",
+      "default": "FIXED VIDEO"
+    },
+    {
+      "type": "text",
+      "id": "floating_video_btn_text",
+      "label": "Expanded Video Button Text",
+      "default": "View All"
+    },
+    {
+      "type": "url",
+      "id": "floating_video_btn_link",
+      "label": "Expanded Video Button Link"
+    },
+    {
+      "type": "header",
+      "content": "Typography & Font Family Options"
+    },
+    {
+      "type": "font_picker",
+      "id": "font_family",
+      "label": "Shopify Font Picker",
+      "default": "sans-serif"
+    },
+    {
+      "type": "select",
+      "id": "custom_font_family",
+      "label": "Quick Preset Web Font Family",
+      "options": [
+        { "value": "inherit", "label": "Use Theme Default / Font Picker" },
+        { "value": "'Inter', sans-serif", "label": "Inter (Modern Sans-Serif)" },
+        { "value": "'Poppins', sans-serif", "label": "Poppins (Clean Sans-Serif)" },
+        { "value": "'Roboto', sans-serif", "label": "Roboto (Clean)" },
+        { "value": "'Montserrat', sans-serif", "label": "Montserrat (Geometric)" },
+        { "value": "'Playfair Display', serif", "label": "Playfair Display (Elegant Serif)" },
+        { "value": "'Georgia', serif", "label": "Georgia (Classic Serif)" }
+      ],
+      "default": "inherit"
+    },
+    {
+      "type": "range",
+      "id": "heading_size",
+      "min": 18,
+      "max": 60,
+      "step": 2,
+      "unit": "px",
+      "label": "Heading Font Size",
+      "default": 32
+    },
+    {
+      "type": "select",
+      "id": "heading_style",
+      "label": "Heading Font Style",
+      "options": [
+        { "value": "normal", "label": "Normal" },
+        { "value": "italic", "label": "Italic" }
+      ],
+      "default": "normal"
+    },
+    {
+      "type": "select",
+      "id": "heading_decoration",
+      "label": "Heading Text Decoration",
+      "options": [
+        { "value": "none", "label": "None" },
+        { "value": "underline", "label": "Underline" },
+        { "value": "overline", "label": "Overline" },
+        { "value": "line-through", "label": "Line-through" }
+      ],
+      "default": "none"
+    },
+    {
+      "type": "range",
+      "id": "card_title_size",
+      "min": 14,
+      "max": 28,
+      "step": 1,
+      "unit": "px",
+      "label": "Card Title Font Size",
+      "default": 18
+    },
+    {
+      "type": "select",
+      "id": "card_title_style",
+      "label": "Card Title Font Style",
+      "options": [
+        { "value": "normal", "label": "Normal" },
+        { "value": "italic", "label": "Italic" }
+      ],
+      "default": "normal"
+    },
+    {
+      "type": "select",
+      "id": "card_title_decoration",
+      "label": "Card Title Text Decoration",
+      "options": [
+        { "value": "none", "label": "None" },
+        { "value": "underline", "label": "Underline" },
+        { "value": "overline", "label": "Overline" },
+        { "value": "line-through", "label": "Line-through" }
+      ],
+      "default": "none"
+    },
+    {
+      "type": "range",
+      "id": "card_body_size",
+      "min": 11,
+      "max": 22,
+      "step": 1,
+      "unit": "px",
+      "label": "Card Body Text Font Size",
+      "default": 14
+    },
+    {
+      "type": "select",
+      "id": "card_body_style",
+      "label": "Card Body Font Style",
+      "options": [
+        { "value": "normal", "label": "Normal" },
+        { "value": "italic", "label": "Italic" }
+      ],
+      "default": "normal"
+    },
+    {
+      "type": "select",
+      "id": "card_body_decoration",
+      "label": "Card Body Text Decoration",
+      "options": [
+        { "value": "none", "label": "None" },
+        { "value": "underline", "label": "Underline" },
+        { "value": "line-through", "label": "Line-through" }
+      ],
+      "default": "none"
+    },
+    {
+      "type": "header",
+      "content": "Button Settings"
+    },
+    {
+      "type": "text",
+      "id": "button_text",
+      "label": "Bottom Button Text",
+      "default": "View All"
+    },
+    {
+      "type": "url",
+      "id": "button_link",
+      "label": "Bottom Button Link"
+    },
+    {
+      "type": "header",
+      "content": "Autoplay Settings"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_autoplay",
+      "label": "Enable Auto Slide Loop",
+      "default": true
+    },
+    {
+      "type": "range",
+      "id": "autoplay_speed",
+      "min": 3,
+      "max": 10,
+      "step": 1,
+      "unit": "s",
+      "label": "Autoplay Duration",
+      "default": 5
+    },
+    {
+      "type": "header",
+      "content": "Background & Gradient Colors"
+    },
+    {
+      "type": "color",
+      "id": "bg_color",
+      "label": "Section Solid Background Color",
+      "default": "#d9f7d9"
+    },
+    {
+      "type": "color_background",
+      "id": "bg_gradient",
+      "label": "Section Background Gradient",
+      "default": "linear-gradient(180deg, #e4fae4 0%, #ccf4cc 100%)"
+    },
+    {
+      "type": "color",
+      "id": "heading_color",
+      "label": "Main Heading Color",
+      "default": "#111111"
+    },
+    {
+      "type": "color",
+      "id": "subtext_color",
+      "label": "Subtext Color",
+      "default": "#333333"
+    },
+    {
+      "type": "header",
+      "content": "Card Styling & Shadow Options"
+    },
+    {
+      "type": "range",
+      "id": "card_border_radius",
+      "min": 0,
+      "max": 40,
+      "step": 2,
+      "unit": "px",
+      "label": "Card Border Radius",
+      "default": 14
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_card_shadow",
+      "label": "Enable Card Shadow Effect",
+      "default": true
+    },
+    {
+      "type": "header",
+      "content": "Center Active Card Colors"
+    },
+    {
+      "type": "color",
+      "id": "active_card_bg",
+      "label": "Active Center Card Background",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "active_text_color",
+      "label": "Active Center Card Text Color",
+      "default": "#111111"
+    },
+    {
+      "type": "header",
+      "content": "Side Dull Cards Colors"
+    },
+    {
+      "type": "color",
+      "id": "dull_card_bg",
+      "label": "Side Dull Cards Background",
+      "default": "rgba(255, 255, 255, 0.55)"
+    },
+    {
+      "type": "color",
+      "id": "dull_text_color",
+      "label": "Side Dull Cards Text Color",
+      "default": "#667766"
+    },
+    {
+      "type": "header",
+      "content": "Star Rating Customization"
+    },
+    {
+      "type": "color",
+      "id": "star_bg_color",
+      "label": "Active Star Box Background",
+      "default": "#00b67a"
+    },
+    {
+      "type": "color",
+      "id": "star_empty_bg",
+      "label": "Empty / Half Star Box Background",
+      "default": "#dbdbdb"
+    },
+    {
+      "type": "color",
+      "id": "star_color",
+      "label": "Star Icon Text Color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "header",
+      "content": "Button & Navigation Colors"
+    },
+    {
+      "type": "color",
+      "id": "nav_btn_bg",
+      "label": "Nav Arrow Background",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "nav_btn_text",
+      "label": "Nav Arrow Icon Color",
+      "default": "#111111"
+    },
+    {
+      "type": "color",
+      "id": "btn_bg",
+      "label": "Bottom Button Background",
+      "default": "#000000"
+    },
+    {
+      "type": "color",
+      "id": "btn_text",
+      "label": "Bottom Button Text Color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "btn_hover_bg",
+      "label": "Bottom Button Hover Background",
+      "default": "#222222"
+    },
+    {
+      "type": "header",
+      "content": "Layout Settings"
+    },
+    {
+      "type": "range",
+      "id": "max_width",
+      "min": 800,
+      "max": 1400,
+      "step": 20,
+      "unit": "px",
+      "label": "Maximum Container Width",
+      "default": 1200
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "label": "Top Padding",
+      "default": 60
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "label": "Bottom Padding",
+      "default": 60
+    }
+  ],
+  "blocks": [
+    {
+      "type": "testimonial",
+      "name": "Review Card",
+      "settings": [
+        {
+          "type": "range",
+          "id": "rating",
+          "min": 1,
+          "max": 5,
+          "step": 0.5,
+          "label": "Star Rating (e.g. 4.5, 3.5)",
+          "default": 5
+        },
+        {
+          "type": "text",
+          "id": "title",
+          "label": "Review Title",
+          "default": "Great Product!"
+        },
+        {
+          "type": "textarea",
+          "id": "review_text",
+          "label": "Review Body Text",
+          "default": "Write customer feedback or review experience here."
+        },
+        {
+          "type": "text",
+          "id": "author_name",
+          "label": "Customer Name",
+          "default": "Customer Name"
+        },
+        {
+          "type": "text",
+          "id": "review_date",
+          "label": "Review Date Text",
+          "default": "29 July"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Featured Testimonials",
+      "blocks": [
+        {
+          "type": "testimonial",
+          "settings": {
+            "rating": 4.5,
+            "title": "Very effective electric toothbrush...",
+            "review_text": "Electric toothbrush that's very effective (gentle yet cleans teeth very well) and very convenient (no more constantly dirty toothbrush holders cluttering the bathroom counter)",
+            "author_name": "Miguel",
+            "review_date": "27 August"
+          }
+        },
+        {
+          "type": "testimonial",
+          "settings": {
+            "rating": 5,
+            "title": "I have very sensitive gums",
+            "review_text": "I have very sensitive gums that bleed with every brushing. I was skeptical about switching from my more expensive Oral B to another brand. The result? Thrilled!",
+            "author_name": "Barbara",
+            "review_date": "30 September"
+          }
+        },
+        {
+          "type": "testimonial",
+          "settings": {
+            "rating": 3.5,
+            "title": "I adopted it!",
+            "review_text": "I've been using an Oral B electric toothbrush for years, but I'm thrilled to have switched to the My Variations one: it's softer yet more effective, quieter, and cleaner. Don't hesitate!",
+            "author_name": "Cathrine",
+            "review_date": "29 July"
+          }
+        },
+        {
+          "type": "testimonial",
+          "settings": {
+            "rating": 5,
+            "title": "Very good toothbrush",
+            "review_text": "Very good toothbrush. I was skeptical at first because of the price, but the FlexiClean toothbrush is indeed superb. It has a nice design, is easy to use...",
+            "author_name": "Franck",
+            "review_date": "30 June"
+          }
+        },
+        {
+          "type": "testimonial",
+          "settings": {
+            "rating": 4.5,
+            "title": "I love it!!! 😍",
+            "review_text": "At first, I thought I'd have to return my toothbrush because the tickling sensation was bothering me, but after a few days, I got used to it and I'm really glad I persisted.",
+            "author_name": "Gerard",
+            "review_date": "30 June"
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}
