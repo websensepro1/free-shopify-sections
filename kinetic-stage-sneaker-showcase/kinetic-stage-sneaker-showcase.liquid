@@ -1,0 +1,1525 @@
+{%- comment -%}
+  Kinetic Stage Sneaker Showcase v2 — luxury sneaker kinetic stage
+  Every slide block = one Shopify product. Title, vendor, description, price, compare-at price,
+  size variants, color variants (with swatches), gallery thumbnails, video and reviews rating
+  are all pulled from the product automatically.
+  Scoped under .kinetic-stage-sneaker-showcase (BEM: ks__*). Vanilla ES6 + GSAP 3 (CDN fallback loader).
+{%- endcomment -%}
+
+{%- liquid
+  assign card_a = section.settings.card_opacity | divided_by: 100.0
+  assign card_bg_rgba = section.settings.card_bg | color_modify: 'alpha', card_a
+  assign card_bg2_rgba = section.settings.card_bg_2 | color_modify: 'alpha', card_a
+  assign border_a = section.settings.card_border_opacity | divided_by: 100.0
+  assign border_rgba = section.settings.card_border_color | color_modify: 'alpha', border_a
+  assign shadow_a = section.settings.card_shadow | divided_by: 100.0 | times: 0.6
+  assign muted_a = section.settings.muted_opacity | divided_by: 100.0
+  assign glow_a = section.settings.glow_opacity | divided_by: 100.0
+  assign grain_a = section.settings.grain_opacity | divided_by: 100.0
+  assign floor_a = section.settings.floor_shadow | divided_by: 100.0
+  assign title_track = section.settings.title_tracking | divided_by: 100.0
+  assign cart_link = routes.cart_url
+  assign show_nav = false
+  if section.settings.show_logo
+    assign show_nav = true
+  endif
+  assign root_class = 'kinetic-stage-sneaker-showcase'
+  if section.settings.mirror_layout
+    assign root_class = root_class | append: ' is-mirror'
+  endif
+  if section.settings.atc_style == 'outline'
+    assign root_class = root_class | append: ' is-atc-outline'
+  endif
+  if section.settings.full_width
+    assign root_class = root_class | append: ' is-full'
+  endif
+  assign btn_radius = '999px'
+  if section.settings.atc_shape == 'rounded'
+    assign btn_radius = '16px'
+  elsif section.settings.atc_shape == 'square'
+    assign btn_radius = '4px'
+  endif
+-%}
+
+{{ section.settings.heading_font | font_face: font_display: 'swap' }}
+{{ section.settings.body_font | font_face: font_display: 'swap' }}
+
+<style>
+  #ks-{{ section.id }} {
+    --ks-title: {{ section.settings.title_size }}px;
+    --ks-title-m: {{ section.settings.mobile_title_size }}px;
+    --ks-sub: {{ section.settings.subtitle_size }}px;
+    --ks-price: {{ section.settings.price_size }}px;
+    --ks-body: {{ section.settings.body_size }}px;
+    --ks-track: {{ title_track }}em;
+    --ks-glow-op: {{ glow_a }};
+    --ks-glow-size: {{ section.settings.glow_size }}vmax;
+    --ks-tint: {{ section.settings.card_tint | divided_by: 100.0 }};
+    --ks-card-blur: {{ section.settings.card_blur }}px;
+    --ks-radius: {{ section.settings.card_radius }}px;
+    --ks-card-pad: {{ section.settings.card_padding }}px;
+    --ks-card-w: {{ section.settings.card_width }}px;
+    --ks-pad-x: {{ section.settings.padding_x }}px;
+    --ks-pad-top: {{ section.settings.padding_top }}px;
+    --ks-pad-bottom: {{ section.settings.padding_bottom }}px;
+    --ks-min-h: {{ section.settings.section_height }}vh;
+    --ks-stage-h: {{ section.settings.stage_height }}px;
+    --ks-stage-h-m: {{ section.settings.mobile_stage_height }}px;
+    --ks-shoe-scale: {{ section.settings.shoe_scale | divided_by: 100.0 }};
+    --ks-shoe-y: {{ section.settings.shoe_y }}%;
+    --ks-shadow-y: {{ section.settings.shadow_y }}%;
+    --ks-thumb: {{ section.settings.thumb_size }}px;
+    --ks-btn-h: {{ section.settings.button_height }}px;
+    --ks-btn-radius: {{ btn_radius }};
+    --ks-text: {{ section.settings.text_color }};
+    --ks-muted: {{ section.settings.text_color | color_modify: 'alpha', muted_a }};
+    --ks-line: {{ section.settings.text_color | color_modify: 'alpha', 0.16 }};
+    --ks-price-color: {{ section.settings.price_color }};
+    --ks-star: {{ section.settings.star_color }};
+    --ks-btn-bg: {{ section.settings.button_bg }};
+    --ks-btn-text: {{ section.settings.button_text }};
+    --ks-size-bg: {{ section.settings.size_active_bg }};
+    --ks-size-text: {{ section.settings.size_active_text }};
+    --ks-ring: {{ section.settings.swatch_ring }};
+    --ks-card-bg: {{ card_bg_rgba }};
+    --ks-card-border: {{ border_rgba }};
+    --ks-card-shadow: {{ shadow_a }};
+    --ks-floor: {{ floor_a }};
+    --ks-floor-color: {{ section.settings.floor_shadow_color }};
+    --ks-grain: {{ grain_a }};
+    --ks-font-h: {{ section.settings.heading_font.family }}, {{ section.settings.heading_font.fallback_families }};
+    --ks-font-b: {{ section.settings.body_font.family }}, {{ section.settings.body_font.fallback_families }};
+    --ks-transform: {{ section.settings.title_transform }};
+    background: {{ section.settings.canvas_color }};
+  }
+  {%- if section.settings.card_gradient -%}
+  #ks-{{ section.id }} .ks__card { background: linear-gradient(150deg, {{ card_bg_rgba }} 0%, {{ card_bg2_rgba }} 100%); }
+  {%- else -%}
+  #ks-{{ section.id }} .ks__card { background: {{ card_bg_rgba }}; }
+  {%- endif -%}
+
+  #ks-{{ section.id }}.kinetic-stage-sneaker-showcase {
+    position: relative; overflow: hidden; isolation: isolate;
+    display: flex; align-items: center; justify-content: center;
+    min-height: var(--ks-min-h);
+    padding: var(--ks-pad-top) var(--ks-pad-x) var(--ks-pad-bottom);
+    box-sizing: border-box;
+    font-family: var(--ks-font-b); font-size: var(--ks-body);
+    color: var(--ks-text);
+    -webkit-font-smoothing: antialiased;
+  }
+  .kinetic-stage-sneaker-showcase *, .kinetic-stage-sneaker-showcase *::before, .kinetic-stage-sneaker-showcase *::after { box-sizing: border-box; }
+  .kinetic-stage-sneaker-showcase button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; }
+  .kinetic-stage-sneaker-showcase a { color: inherit; text-decoration: none; }
+  .kinetic-stage-sneaker-showcase h1, .kinetic-stage-sneaker-showcase h2, .kinetic-stage-sneaker-showcase p { margin: 0; }
+  .kinetic-stage-sneaker-showcase [hidden] { display: none !important; }
+
+  /* ---------- Ambient glow + grain ---------- */
+  .kinetic-stage-sneaker-showcase .ks__glow { position: absolute; inset: 0; z-index: 0; pointer-events: none; }
+  .kinetic-stage-sneaker-showcase .ks__blob {
+    position: absolute; border-radius: 50%; width: var(--ks-glow-size); height: var(--ks-glow-size);
+    opacity: var(--ks-glow-op); transform: translateZ(0);
+    background: radial-gradient(closest-side, currentColor 0%, currentColor 18%, transparent 100%);
+  }
+  .kinetic-stage-sneaker-showcase.is-static .ks__blob, .kinetic-stage-sneaker-showcase.is-static .ks__tint-blob { transition: color 1.2s ease; }
+  .kinetic-stage-sneaker-showcase .ks__blob--a { left: -12vmax; top: -16vmax; color: #2a2a2a; }
+  .kinetic-stage-sneaker-showcase .ks__blob--b { right: -14vmax; bottom: -20vmax; color: #555; }
+  /* glow colors also bleed into the glass card */
+  .kinetic-stage-sneaker-showcase .ks__tint { position: absolute; inset: 0; z-index: -1; border-radius: inherit; overflow: hidden; pointer-events: none; opacity: var(--ks-tint); }
+  .kinetic-stage-sneaker-showcase .ks__tint-blob { position: absolute; display: block; width: 75%; aspect-ratio: 1; border-radius: 50%; background: radial-gradient(closest-side, currentColor 0%, currentColor 15%, transparent 100%); }
+  .kinetic-stage-sneaker-showcase .ks__tint-blob--a { left: -30%; top: -60%; width: 95%; color: #2a2a2a; }
+  .kinetic-stage-sneaker-showcase .ks__tint-blob--b { right: -30%; bottom: -65%; width: 95%; color: #555; }
+  .kinetic-stage-sneaker-showcase .ks__grain {
+    position: absolute; inset: 0; z-index: 0; pointer-events: none; opacity: var(--ks-grain); 
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 .9 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  }
+
+  /* ---------- Card ---------- */
+  .kinetic-stage-sneaker-showcase .ks__card {
+    position: relative; z-index: 1;
+    width: min(var(--ks-card-w), 100%);
+    container-type: inline-size; container-name: ks;
+    min-height: calc(var(--ks-min-h) - var(--ks-pad-top) - var(--ks-pad-bottom));
+    border-radius: var(--ks-radius);
+    box-shadow: 0 40px 100px -30px rgba(0,0,0,var(--ks-card-shadow)), inset 0 0 0 1px var(--ks-card-border);
+    display: grid;
+    grid-template-columns: minmax(0, 1.05fr) minmax(0, 1.5fr) minmax(0, .95fr);
+    grid-template-rows: auto 1fr auto;
+    grid-template-areas: "nav nav nav" "left stage right" "bar bar bar";
+    padding: var(--ks-card-pad);
+    gap: 0 clamp(8px, 2vw, 32px);
+  }
+  {%- if section.settings.card_blur > 0 -%}
+  .kinetic-stage-sneaker-showcase .ks__card { -webkit-backdrop-filter: blur(var(--ks-card-blur)); backdrop-filter: blur(var(--ks-card-blur)); }
+  {%- endif -%}
+  .kinetic-stage-sneaker-showcase.is-full { padding-left: 0; padding-right: 0; }
+  .kinetic-stage-sneaker-showcase.is-full .ks__card { width: 100%; border-radius: 0; }
+  @media (min-width: 900px) {
+    .kinetic-stage-sneaker-showcase.is-mirror .ks__card {
+      grid-template-columns: minmax(0, .95fr) minmax(0, 1.5fr) minmax(0, 1.05fr);
+      grid-template-areas: "nav nav nav" "right stage left" "bar bar bar";
+    }
+    .kinetic-stage-sneaker-showcase.is-mirror .ks__right { align-items: flex-start; text-align: left; }
+    .kinetic-stage-sneaker-showcase.is-mirror .ks__sizes, .kinetic-stage-sneaker-showcase.is-mirror .ks__swatches { justify-content: flex-start; }
+  }
+
+  /* ---------- Nav ---------- */
+  .kinetic-stage-sneaker-showcase .ks__nav { grid-area: nav; display: grid; align-items: center; min-height: 42px; }
+  .kinetic-stage-sneaker-showcase .ks__logo { justify-self: start; font-family: var(--ks-font-h); font-weight: 800; letter-spacing: .14em; text-transform: uppercase; font-size: 1.25em; display: inline-flex; align-items: center; }
+  .kinetic-stage-sneaker-showcase .ks__logo img { display: block; height: auto; max-height: 40px; width: {{ section.settings.logo_width }}px; max-width: 100%; }
+
+  /* ---------- Left ---------- */
+  .kinetic-stage-sneaker-showcase .ks__left { grid-area: left; display: flex; flex-direction: column; justify-content: center; gap: 18px; padding: 24px 0; min-width: 0; }
+  .kinetic-stage-sneaker-showcase .ks__brand { font-size: .8em; letter-spacing: .3em; text-transform: uppercase; font-weight: 700; }
+  .kinetic-stage-sneaker-showcase .ks__title {
+    font-family: var(--ks-font-h); font-weight: 800; line-height: 1; letter-spacing: var(--ks-track);
+    text-transform: var(--ks-transform); text-wrap: balance; overflow-wrap: break-word;
+    font-size: var(--ks-title);
+    font-size: max(22px, min(var(--ks-title), 3.7cqw));
+  }
+  .kinetic-stage-sneaker-showcase .ks__title a:hover { opacity: .75; }
+  .kinetic-stage-sneaker-showcase .ks__sub { color: var(--ks-muted); font-size: {{ section.settings.subtitle_size }}px; max-width: 34ch; line-height: 1.6; }
+  .kinetic-stage-sneaker-showcase .ks__thumbs { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-top: 6px; }
+  .kinetic-stage-sneaker-showcase .ks__thumb { width: var(--ks-thumb); height: var(--ks-thumb); border-radius: 14px; border: 1px solid var(--ks-line); background: rgba(255,255,255,.35); overflow: hidden; display: grid; place-items: center; transition: transform .3s, border-color .3s; }
+  .kinetic-stage-sneaker-showcase .ks__thumb img { width: 100%; height: 100%; object-fit: cover; }
+  .kinetic-stage-sneaker-showcase .ks__thumb:hover { transform: translateY(-3px); }
+  .kinetic-stage-sneaker-showcase .ks__thumb.is-active { border-color: var(--ks-text); box-shadow: 0 0 0 2px var(--ks-card-bg), 0 0 0 3px var(--ks-text); }
+  .kinetic-stage-sneaker-showcase .ks__more { width: var(--ks-thumb); height: var(--ks-thumb); border-radius: 14px; display: grid; place-items: center; font-weight: 700; font-size: .9em; background: var(--ks-btn-bg); color: var(--ks-btn-text); transition: transform .3s; }
+  .kinetic-stage-sneaker-showcase .ks__more:hover { transform: translateY(-3px); }
+
+  /* ---------- Stage ---------- */
+  .kinetic-stage-sneaker-showcase .ks__stage { grid-area: stage; position: relative; min-height: var(--ks-stage-h); touch-action: pan-y; }
+  .kinetic-stage-sneaker-showcase .ks__shadow {
+    position: absolute; left: 50%; bottom: calc(10% + var(--ks-shadow-y)); width: 66%; height: 7%;
+    border-radius: 50%; pointer-events: none; opacity: 0;
+    background: radial-gradient(closest-side, var(--ks-floor-color), rgba(0,0,0,0) 100%);
+    will-change: transform, opacity;
+  }
+  .kinetic-stage-sneaker-showcase .ks__shoe {
+    position: absolute; left: 50%; bottom: calc(-10% + var(--ks-shoe-y));
+    width: calc(min(92%, 640px) * var(--ks-shoe-scale));
+    pointer-events: none; will-change: transform, opacity; opacity: 0; transform-origin: 50% 100%;
+  }
+  .kinetic-stage-sneaker-showcase .ks__shoe-inner { transform-style: preserve-3d; will-change: transform; }
+  .kinetic-stage-sneaker-showcase .ks__shoe img, .kinetic-stage-sneaker-showcase .ks__shoe svg { display: block; width: 100%; height: auto; user-select: none; -webkit-user-drag: none; }
+  .kinetic-stage-sneaker-showcase.is-static .ks__shoe { opacity: 1; transform: translateX(-50%); transition: opacity .5s; }
+  .kinetic-stage-sneaker-showcase.is-static .ks__shadow { opacity: .5; transform: translateX(-50%); }
+
+  /* ---------- Right ---------- */
+  .kinetic-stage-sneaker-showcase .ks__right { grid-area: right; display: flex; flex-direction: column; justify-content: center; align-items: flex-end; gap: 22px; text-align: right; padding: 24px 0; min-width: 0; }
+  .kinetic-stage-sneaker-showcase .ks__label { font-size: .68em; letter-spacing: .26em; text-transform: uppercase; color: var(--ks-muted); margin-bottom: 10px; }
+  .kinetic-stage-sneaker-showcase .ks__sizes { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; }
+  .kinetic-stage-sneaker-showcase .ks__size { min-width: 42px; height: 42px; padding: 0 6px; border-radius: 99px; border: 1px solid var(--ks-line); font-weight: 600; font-size: .86em; transition: background .25s, color .25s, border-color .25s, transform .25s; }
+  .kinetic-stage-sneaker-showcase .ks__size:hover:not([disabled]) { border-color: var(--ks-text); transform: translateY(-2px); }
+  .kinetic-stage-sneaker-showcase .ks__size.is-active { background: var(--ks-size-bg); color: var(--ks-size-text); border-color: var(--ks-size-bg); }
+  .kinetic-stage-sneaker-showcase .ks__size.is-oos { opacity: .35; text-decoration: line-through; cursor: not-allowed; }
+  .kinetic-stage-sneaker-showcase .ks__rating { display: inline-flex; align-items: center; gap: 8px; }
+  .kinetic-stage-sneaker-showcase .ks__stars { position: relative; display: inline-block; letter-spacing: 2px; color: var(--ks-line); font-size: 1.05em; line-height: 1; }
+  .kinetic-stage-sneaker-showcase .ks__stars-fill { position: absolute; left: 0; top: 0; overflow: hidden; white-space: nowrap; color: var(--ks-star); }
+  .kinetic-stage-sneaker-showcase .ks__score { font-weight: 700; }
+  .kinetic-stage-sneaker-showcase .ks__reviews { color: var(--ks-muted); font-size: .86em; }
+  .kinetic-stage-sneaker-showcase .ks__price-wrap { display: flex; align-items: baseline; gap: 12px; justify-content: flex-end; flex-wrap: wrap; }
+  .kinetic-stage-sneaker-showcase .ks__price { font-family: var(--ks-font-h); font-weight: 800; color: var(--ks-price-color); line-height: 1; letter-spacing: -.02em; font-size: calc(var(--ks-price));
+    font-size: max(18px, min(var(--ks-price), 3cqw)); }
+  .kinetic-stage-sneaker-showcase .ks__was { color: var(--ks-muted); text-decoration: line-through; font-size: 1.05em; }
+  .kinetic-stage-sneaker-showcase.is-mirror .ks__price-wrap { justify-content: flex-start; }
+  .kinetic-stage-sneaker-showcase .ks__swatches { display: flex; gap: 14px; justify-content: flex-end; flex-wrap: wrap; }
+  .kinetic-stage-sneaker-showcase .ks__swatch { position: relative; width: 30px; height: 30px; border-radius: 50%; box-shadow: inset 0 0 0 1px rgba(0,0,0,.18); transition: transform .3s; overflow: visible; background-size: cover; background-position: center; }
+  .kinetic-stage-sneaker-showcase .ks__swatch::after { content: ""; position: absolute; inset: -6px; border-radius: 50%; border: 1.5px solid var(--ks-ring); opacity: 0; transform: scale(.8); transition: opacity .3s, transform .3s; }
+  .kinetic-stage-sneaker-showcase .ks__swatch:hover { transform: scale(1.08); }
+  .kinetic-stage-sneaker-showcase .ks__swatch.is-active::after { opacity: 1; transform: scale(1); }
+  .kinetic-stage-sneaker-showcase .ks__swatch.is-oos { opacity: .4; }
+  .kinetic-stage-sneaker-showcase .ks__color-name { margin-top: 10px; font-size: .86em; font-weight: 600; }
+
+  /* ---------- Bottom bar ---------- */
+  .kinetic-stage-sneaker-showcase .ks__bar { grid-area: bar; display: grid; grid-template-columns: 1fr minmax(0, 380px) 1fr; grid-template-areas: "play scrub atc"; align-items: center; gap: 16px; padding-top: 10px; }
+  .kinetic-stage-sneaker-showcase .ks__play { grid-area: play; justify-self: start; display: inline-flex; align-items: center; gap: 12px; font-size: .74em; letter-spacing: .2em; text-transform: uppercase; font-weight: 600; }
+  .kinetic-stage-sneaker-showcase .ks__play-ico { width: 42px; height: 42px; border-radius: 50%; border: 1px solid var(--ks-line); display: grid; place-items: center; transition: background .3s, color .3s, transform .3s; }
+  .kinetic-stage-sneaker-showcase .ks__play:hover .ks__play-ico { background: var(--ks-btn-bg); color: var(--ks-btn-text); transform: scale(1.06); }
+  .kinetic-stage-sneaker-showcase .ks__play-ico svg { width: 14px; height: 14px; margin-left: 2px; }
+  .kinetic-stage-sneaker-showcase .ks__scrub { grid-area: scrub; display: flex; align-items: center; gap: 14px; font-variant-numeric: tabular-nums; font-size: .8em; font-weight: 600; letter-spacing: .08em; }
+  .kinetic-stage-sneaker-showcase .ks__arrow { width: 36px; height: 36px; border-radius: 50%; border: 1px solid var(--ks-line); display: grid; place-items: center; font-size: 1.1em; transition: background .25s, color .25s; flex: none; }
+  .kinetic-stage-sneaker-showcase .ks__arrow:hover { background: var(--ks-btn-bg); color: var(--ks-btn-text); }
+  .kinetic-stage-sneaker-showcase .ks__track { position: relative; flex: 1; height: 2px; background: var(--ks-line); border-radius: 2px; overflow: hidden; }
+  .kinetic-stage-sneaker-showcase .ks__fill { position: absolute; inset: 0; background: var(--ks-text); transform-origin: 0 50%; transform: scaleX(.33); }
+  .kinetic-stage-sneaker-showcase .ks__atc {
+    grid-area: atc; justify-self: end; position: relative; overflow: hidden; isolation: isolate;
+    display: inline-flex; align-items: center; gap: 12px; height: var(--ks-btn-h); padding: 0 28px;
+    border-radius: var(--ks-btn-radius); background: var(--ks-btn-bg); color: var(--ks-btn-text);
+    font-size: .76em; letter-spacing: .2em; font-weight: 700; text-transform: uppercase;
+    min-width: 190px; justify-content: center;
+    transition: transform .22s cubic-bezier(.2,.8,.2,1), box-shadow .22s ease, color .22s ease, opacity .2s ease;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .kinetic-stage-sneaker-showcase .ks__atc:active { transform: translateY(0) scale(.96); transition-duration: .08s; }
+  .kinetic-stage-sneaker-showcase .ks__atc-label { display: inline-block; will-change: transform, opacity; }
+  .kinetic-stage-sneaker-showcase .ks__atc-label.is-roll { animation: ks-roll .38s cubic-bezier(.2,.9,.25,1) both; }
+  @keyframes ks-roll { from { transform: translateY(70%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+  .kinetic-stage-sneaker-showcase .ks__atc-ico { position: relative; width: 18px; height: 18px; flex: none; display: grid; place-items: center; }
+  .kinetic-stage-sneaker-showcase .ks__atc-ico svg { position: absolute; inset: 0; width: 18px; height: 18px; transition: transform .3s cubic-bezier(.2,.8,.2,1), opacity .2s ease; }
+  .kinetic-stage-sneaker-showcase .ks__atc-spin, .kinetic-stage-sneaker-showcase .ks__atc-check { opacity: 0; transform: scale(.4); }
+  .kinetic-stage-sneaker-showcase .ks__atc-spin { animation: ks-spin .7s linear infinite; animation-play-state: paused; }
+  @keyframes ks-spin { to { rotate: 360deg; } }
+  .kinetic-stage-sneaker-showcase .ks__atc-check path { stroke-dasharray: 26; stroke-dashoffset: 26; }
+  .kinetic-stage-sneaker-showcase .ks__atc.is-loading .ks__atc-cart { opacity: 0; transform: translateX(10px) scale(.4); }
+  .kinetic-stage-sneaker-showcase .ks__atc.is-loading .ks__atc-spin { opacity: 1; transform: scale(1); animation-play-state: running; }
+  .kinetic-stage-sneaker-showcase .ks__atc.is-added .ks__atc-cart { opacity: 0; transform: scale(.4); }
+  .kinetic-stage-sneaker-showcase .ks__atc.is-added .ks__atc-check { opacity: 1; transform: scale(1); }
+  .kinetic-stage-sneaker-showcase .ks__atc.is-added .ks__atc-check path { animation: ks-draw .42s .06s cubic-bezier(.6,0,.2,1) forwards; }
+  @keyframes ks-draw { to { stroke-dashoffset: 0; } }
+  .kinetic-stage-sneaker-showcase .ks__atc.is-loading { pointer-events: none; }
+  .kinetic-stage-sneaker-showcase .ks__atc.is-loading::before { transform: translateY(0); opacity: .35; }
+  .kinetic-stage-sneaker-showcase .ks__atc.is-added::before { transform: translateY(0); }
+  .kinetic-stage-sneaker-showcase .ks__atc.is-added { color: var(--ks-atc-hover-text, #fff); pointer-events: none; animation: ks-pop .5s cubic-bezier(.2,.9,.3,1.3); }
+  @keyframes ks-pop { 0% { transform: scale(.94); } 55% { transform: scale(1.06); } 100% { transform: scale(1); } }
+  .kinetic-stage-sneaker-showcase .ks__atc-ring { position: absolute; inset: 0; border-radius: inherit; pointer-events: none; box-shadow: 0 0 0 0 var(--ks-atc-hover, #888); opacity: 0; }
+  .kinetic-stage-sneaker-showcase .ks__atc.is-added .ks__atc-ring { animation: ks-ring .7s ease-out; }
+  @keyframes ks-ring { 0% { opacity: .6; box-shadow: 0 0 0 0 var(--ks-atc-hover, #888); } 100% { opacity: 0; box-shadow: 0 0 0 16px var(--ks-atc-hover, #888); } }
+  .kinetic-stage-sneaker-showcase .ks__atc-ripple { position: absolute; border-radius: 50%; pointer-events: none; z-index: -1; background: currentColor; opacity: .18; transform: scale(0); animation: ks-ripple .6s ease-out forwards; }
+  @keyframes ks-ripple { to { transform: scale(1); opacity: 0; } }
+  .kinetic-stage-sneaker-showcase.is-atc-outline .ks__atc { background: transparent; color: var(--ks-btn-bg); box-shadow: inset 0 0 0 1.5px var(--ks-btn-bg); }
+  .kinetic-stage-sneaker-showcase .ks__atc::before { content: ""; position: absolute; inset: 0; z-index: -1; background: var(--ks-atc-hover, #888); transform: translateY(101%); transition: transform .3s cubic-bezier(.65,0,.35,1), opacity .2s ease; }
+  .kinetic-stage-sneaker-showcase .ks__atc:hover { transform: translateY(-2px); box-shadow: 0 14px 28px -10px rgba(0,0,0,.45); color: var(--ks-atc-hover-text, #fff); }
+  .kinetic-stage-sneaker-showcase .ks__atc:hover::before { transform: translateY(0); }
+  .kinetic-stage-sneaker-showcase .ks__atc:hover:not(.is-loading):not(.is-added) .ks__atc-cart { transform: translateX(3px) rotate(-8deg); }
+  .kinetic-stage-sneaker-showcase .ks__atc[disabled]:not(.is-added) { opacity: .55; pointer-events: none; }
+
+  /* ---------- Modal ---------- */
+  .kinetic-stage-sneaker-showcase .ks__modal { position: fixed; inset: 0; z-index: 9999; display: none; align-items: center; justify-content: center; background: rgba(0,0,0,.84); padding: 20px; }
+  .kinetic-stage-sneaker-showcase .ks__modal.is-open { display: flex; }
+  .kinetic-stage-sneaker-showcase .ks__modal-box { position: relative; width: min(960px, 100%); aspect-ratio: 16/9; background: #000; border-radius: 16px; overflow: hidden; }
+  .kinetic-stage-sneaker-showcase .ks__modal-box iframe, .kinetic-stage-sneaker-showcase .ks__modal-box video { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+  .kinetic-stage-sneaker-showcase .ks__modal-close { position: absolute; top: 18px; right: 22px; z-index: 2; width: 44px; height: 44px; border-radius: 50%; background: rgba(255,255,255,.14); color: #fff; font-size: 22px; line-height: 1; }
+
+  .kinetic-stage-sneaker-showcase .ks__vh { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  .kinetic-stage-sneaker-showcase button:focus-visible, .kinetic-stage-sneaker-showcase a:focus-visible { outline: 2px solid var(--ks-text); outline-offset: 3px; }
+
+  /* ---------- Responsive ---------- */
+  @media (max-width: 899px) {
+    #ks-{{ section.id }}.kinetic-stage-sneaker-showcase { padding-left: 10px; padding-right: 10px; }
+    .kinetic-stage-sneaker-showcase .ks__card {
+      grid-template-columns: minmax(0, 1fr); grid-template-rows: auto auto auto auto auto;
+      grid-template-areas: "nav" "stage" "left" "right" "bar"; min-height: 0; gap: 0;
+      padding: clamp(16px, 5vw, 26px);
+    }
+    .kinetic-stage-sneaker-showcase .ks__stage { min-height: 0; height: var(--ks-stage-h-m); margin: 4px 0; }
+    .kinetic-stage-sneaker-showcase .ks__shoe { width: calc(min(96%, 460px) * var(--ks-shoe-scale)); }
+    .kinetic-stage-sneaker-showcase .ks__title { font-size: var(--ks-title-m); font-size: max(22px, min(var(--ks-title-m), 9cqw)); }
+    .kinetic-stage-sneaker-showcase .ks__sub { max-width: none; }
+    .kinetic-stage-sneaker-showcase .ks__left { padding: 12px 0 8px; gap: 12px; }
+    .kinetic-stage-sneaker-showcase .ks__right { align-items: flex-start; text-align: left; padding: 8px 0 12px; gap: 18px; }
+    .kinetic-stage-sneaker-showcase .ks__sizes, .kinetic-stage-sneaker-showcase .ks__swatches, .kinetic-stage-sneaker-showcase .ks__price-wrap { justify-content: flex-start; }
+    .kinetic-stage-sneaker-showcase .ks__price { font-size: max(20px, min(var(--ks-price), 8cqw)); }
+    .kinetic-stage-sneaker-showcase .ks__bar { grid-template-columns: 1fr 1fr; grid-template-areas: "scrub scrub" "play atc"; row-gap: 14px; }
+    .kinetic-stage-sneaker-showcase .ks__atc { padding: 0 20px; }
+  }
+  @media (prefers-reduced-motion: reduce) { .kinetic-stage-sneaker-showcase * { transition-duration: .01ms !important; } }
+
+  {{ section.settings.custom_css }}
+</style>
+
+<section id="ks-{{ section.id }}" class="{{ root_class }}" aria-roledescription="carousel" aria-label="{{ section.settings.brand_text | escape }}">
+
+  <div class="ks__glow" aria-hidden="true">
+    <div class="ks__blob ks__blob--a" data-blob-a></div>
+    <div class="ks__blob ks__blob--b" data-blob-b></div>
+  </div>
+  {%- if section.settings.grain_opacity > 0 -%}<div class="ks__grain" aria-hidden="true"></div>{%- endif -%}
+
+  <div class="ks__card" data-card>
+    <div class="ks__tint" aria-hidden="true"><i class="ks__tint-blob ks__tint-blob--a" data-tint-a></i><i class="ks__tint-blob ks__tint-blob--b" data-tint-b></i></div>
+
+    <header class="ks__nav" {% unless show_nav %}hidden{% endunless %}>
+      {%- if section.settings.show_logo -%}
+        <a class="ks__logo" href="{{ routes.root_url }}">
+          {%- if section.settings.logo != blank -%}
+            {{ section.settings.logo | image_url: width: 400 | image_tag: loading: 'eager', alt: section.settings.brand_text }}
+          {%- else -%}
+            {{ section.settings.brand_text }}
+          {%- endif -%}
+        </a>
+      {%- endif -%}
+    </header>
+
+    <div class="ks__left">
+      <p class="ks__brand" data-anim data-brand></p>
+      <h2 class="ks__title" data-anim data-title></h2>
+      <p class="ks__sub" data-anim data-sub></p>
+      <div class="ks__thumbs" data-anim data-thumbs></div>
+    </div>
+
+    <div class="ks__stage" data-stage>
+      <div class="ks__shadow" data-shadow></div>
+    </div>
+
+    <div class="ks__right">
+      <div data-anim data-vanim data-sizes-wrap>
+        <p class="ks__label">{{ section.settings.size_label }}</p>
+        <div class="ks__sizes" data-sizes role="radiogroup" aria-label="{{ section.settings.size_label | escape }}"></div>
+      </div>
+      <div class="ks__rating" data-anim data-rating></div>
+      <div class="ks__price-wrap" data-anim data-vanim data-price-wrap>
+        <p class="ks__price" data-price></p>
+        <span class="ks__was" data-was></span>
+      </div>
+      <div data-anim data-swatches-wrap>
+        <p class="ks__label">{{ section.settings.color_label }}</p>
+        <div class="ks__swatches" data-swatches role="radiogroup" aria-label="{{ section.settings.color_label | escape }}"></div>
+        {%- if section.settings.show_color_name -%}<p class="ks__color-name" data-color-name></p>{%- endif -%}
+      </div>
+    </div>
+
+    <footer class="ks__bar">
+      <button type="button" class="ks__play" data-play hidden>
+        <span class="ks__play-ico"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 4l14 8-14 8z"/></svg></span>
+        <span>{{ section.settings.play_text }}</span>
+      </button>
+
+      <div class="ks__scrub" data-scrub {% unless section.settings.show_scrubber %}hidden{% endunless %}>
+        <button type="button" class="ks__arrow" data-prev aria-label="Previous">←</button>
+        <span data-cur>01</span>
+        <span class="ks__track"><span class="ks__fill" data-fill></span></span>
+        <span data-total>03</span>
+        <button type="button" class="ks__arrow" data-next aria-label="Next">→</button>
+      </div>
+
+      <button type="button" class="ks__atc" data-atc>
+        <span class="ks__atc-ring" aria-hidden="true"></span>
+        <span class="ks__atc-ico" aria-hidden="true">
+          <svg class="ks__atc-cart" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="20" r="1.4"/><circle cx="18" cy="20" r="1.4"/><path d="M2.5 3.5h3l2.4 11.2a1.6 1.6 0 0 0 1.6 1.3h8.1a1.6 1.6 0 0 0 1.6-1.2L21 8H6.2"/></svg>
+          <svg class="ks__atc-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 3a9 9 0 1 0 9 9" /></svg>
+          <svg class="ks__atc-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 12.5l5 5 10-11"/></svg>
+        </span>
+        <span class="ks__atc-label" data-atc-label>{{ section.settings.atc_text }}</span>
+      </button>
+    </footer>
+  </div>
+
+  <div class="ks__modal" data-modal role="dialog" aria-modal="true" aria-label="Video">
+    <div class="ks__modal-box" data-modal-box></div>
+    <button type="button" class="ks__modal-close" data-modal-close aria-label="Close">×</button>
+  </div>
+
+  <div hidden>
+    {%- for block in section.blocks -%}
+      <span data-ks-block="{{ block.id }}" {{ block.shopify_attributes }}></span>
+    {%- endfor -%}
+  </div>
+
+  <script type="application/json" data-ks-config>
+  {
+    "swatchMode": {{ section.settings.swatch_mode | json }},
+    "keyboard": {{ section.settings.enable_keyboard }},
+    "swipe": {{ section.settings.enable_swipe }},
+    "wheel": {{ section.settings.enable_wheel }},
+    "speed": {{ section.settings.anim_speed }},
+    "bounce": {{ section.settings.bounce }},
+    "entry": {{ section.settings.entry_from | json }},
+    "idle": {{ section.settings.idle_float }},
+    "floatAmount": {{ section.settings.float_amount }},
+    "tilt": {{ section.settings.tilt }},
+    "autoplay": {{ section.settings.autoplay }},
+    "delay": {{ section.settings.autoplay_delay }},
+    "maxThumbs": {{ section.settings.max_thumbs }},
+    "showOos": {{ section.settings.show_sold_out_sizes }},
+    "linkTitle": {{ section.settings.link_title }},
+    "hoverMode": {{ section.settings.atc_hover_mode | json }},
+    "hoverColor": {{ section.settings.atc_hover_color | json }},
+    "afterAdd": {{ section.settings.after_add | json }},
+    "cartUrl": {{ cart_link | json }},
+    "show": {
+      "brand": {{ section.settings.show_brand }},
+      "subtitle": {{ section.settings.show_subtitle }},
+      "thumbs": {{ section.settings.show_thumbs }},
+      "rating": {{ section.settings.show_rating }},
+      "reviewCount": {{ section.settings.show_review_count }},
+      "sizes": {{ section.settings.show_sizes }},
+      "swatches": {{ section.settings.show_swatches }},
+      "colorName": {{ section.settings.show_color_name }},
+      "price": {{ section.settings.show_price }},
+      "video": {{ section.settings.show_video }}
+    },
+    "labels": {
+      "atc": {{ section.settings.atc_text | json }},
+      "added": {{ section.settings.added_text | json }},
+      "soldOut": {{ section.settings.sold_out_text | json }},
+      "selectProduct": {{ section.settings.empty_title | json }},
+      "selectProductText": {{ section.settings.empty_text | json }}
+    }
+  }
+  </script>
+
+  <script type="application/json" data-ks-data>
+  [
+  {%- for block in section.blocks -%}
+    {%- liquid
+      assign p = block.settings.product
+
+      assign hero = blank
+      if block.settings.hero_override != blank
+        assign hero = block.settings.hero_override | image_url: width: 1600
+      endif
+
+      assign video = block.settings.video_url
+      if video == blank and p != blank
+        for m in p.media
+          if video == blank
+            if m.media_type == 'external_video'
+              if m.host == 'youtube'
+                assign video = 'https://www.youtube.com/watch?v=' | append: m.external_id
+              elsif m.host == 'vimeo'
+                assign video = 'https://vimeo.com/' | append: m.external_id
+              endif
+            elsif m.media_type == 'video'
+              assign mp4 = m.sources | where: 'mime_type', 'video/mp4' | first
+              if mp4
+                assign video = mp4.url
+              endif
+            endif
+          endif
+        endfor
+      endif
+
+      assign rating = block.settings.rating_score
+      assign rating_count = 0
+      assign rating_mf = p.metafields.reviews.rating.value
+      if rating_mf != blank
+        assign rating = rating_mf.rating | times: 5.0 | divided_by: rating_mf.scale_max
+        assign rating_count = p.metafields.reviews.rating_count.value | default: 0
+      endif
+
+      assign sub = block.settings.subtitle_override
+      if sub == blank and p != blank
+        assign sub = p.description | strip_html | strip_newlines | truncatewords: section.settings.subtitle_words
+      endif
+
+      assign brand = block.settings.brand_override
+      if brand == blank and p != blank
+        assign brand = p.vendor
+      endif
+
+      assign ttl = block.settings.title_override
+      if ttl == blank and p != blank
+        assign ttl = p.title
+      endif
+    -%}
+    {
+      "id": {{ block.id | json }},
+      "name": {{ block.settings.slide_name | json }},
+      "productId": {% if p != blank %}{{ p.id }}{% else %}null{% endif %},
+      "url": {% if p != blank %}{{ p.url | json }}{% else %}null{% endif %},
+      "brand": {{ brand | json }},
+      "title": {{ ttl | json }},
+      "subtitle": {{ sub | json }},
+      "hero": {{ hero | json }},
+      "video": {{ video | json }},
+      "rating": {{ rating | default: 0 | json }},
+      "ratingCount": {{ rating_count | default: 0 | json }},
+      "glow1": {{ block.settings.glow_color_1 | json }},
+      "glow2": {{ block.settings.glow_color_2 | json }},
+      "swatchOverride": {{ block.settings.swatch_override | json }},
+      "images": [
+        {%- if p != blank -%}
+          {%- for img in p.images limit: 12 -%}
+            {"s": {{ img | image_url: width: 200 | json }}, "l": {{ img | image_url: width: 1600 | json }}, "a": {{ img.alt | json }}}{% unless forloop.last %},{% endunless %}
+          {%- endfor -%}
+        {%- endif -%}
+      ],
+      "optionValues": [
+        {%- if p != blank -%}
+          {%- for opt in p.options_with_values -%}
+            {"name": {{ opt.name | json }}, "values": [
+              {%- for val in opt.values -%}
+                {%- liquid
+                  assign vname = val.name | default: val
+                  assign sw_hex = nil
+                  if val.swatch.color
+                    assign sw_hex = val.swatch.color | color_to_hex
+                  endif
+                  assign sw_img = nil
+                  if val.swatch.image
+                    assign sw_img = val.swatch.image | image_url: width: 96
+                  endif
+                -%}
+                {"v": {{ vname | json }}, "h": {{ sw_hex | json }}, "i": {{ sw_img | json }}}{% unless forloop.last %},{% endunless %}
+              {%- endfor -%}
+            ]}{% unless forloop.last %},{% endunless %}
+          {%- endfor -%}
+        {%- endif -%}
+      ],
+      "variants": [
+        {%- if p != blank -%}
+          {%- for v in p.variants limit: 100 -%}
+            {%- liquid
+              if section.settings.hide_zero_cents
+                assign vprice = v.price | money_without_trailing_zeros | strip_html
+                assign vcompare = v.compare_at_price | money_without_trailing_zeros | strip_html
+              else
+                assign vprice = v.price | money | strip_html
+                assign vcompare = v.compare_at_price | money | strip_html
+              endif
+              assign vimg = nil
+              if v.featured_image
+                assign vimg = v.featured_image | image_url: width: 1600
+              endif
+            -%}
+            {"id": {{ v.id }}, "t": {{ v.title | json }}, "o": [
+              {%- for o in v.options -%}{{ o | json }}{% unless forloop.last %},{% endunless %}{%- endfor -%}
+            ], "a": {{ v.available }}, "p": {{ vprice | json }}, "c": {% if v.compare_at_price > v.price %}{{ vcompare | json }}{% else %}null{% endif %}, "i": {{ vimg | json }}}{% unless forloop.last %},{% endunless %}
+          {%- endfor -%}
+        {%- endif -%}
+      ]
+    }{% unless forloop.last %},{% endunless %}
+  {%- endfor -%}
+  ]
+  </script>
+
+  <script>
+  (function () {
+    var root = document.getElementById('ks-{{ section.id }}');
+    if (!root) return;
+    var slides, cfg;
+    try {
+      slides = JSON.parse(root.querySelector('[data-ks-data]').textContent);
+      cfg = JSON.parse(root.querySelector('[data-ks-config]').textContent);
+    } catch (e) { return; }
+    if (!slides.length) return;
+
+    var CART_JSON = {{ routes.cart_url | append: '.js' | json }};
+    var CART_ADD = {{ routes.cart_add_url | append: '.js' | json }};
+    var GSAP_SRC = 'https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js';
+    var reduced = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+    var finePointer = !!(window.matchMedia && window.matchMedia('(pointer: fine)').matches);
+
+    var $ = function (s) { return root.querySelector(s); };
+    var el = {
+      card: $('[data-card]'), stage: $('[data-stage]'), shadow: $('[data-shadow]'),
+      blobA: $('[data-blob-a]'), blobB: $('[data-blob-b]'), tintA: $('[data-tint-a]'), tintB: $('[data-tint-b]'),
+      brand: $('[data-brand]'), title: $('[data-title]'), sub: $('[data-sub]'), thumbs: $('[data-thumbs]'),
+      sizesWrap: $('[data-sizes-wrap]'), sizes: $('[data-sizes]'), rating: $('[data-rating]'),
+      priceWrap: $('[data-price-wrap]'), price: $('[data-price]'), was: $('[data-was]'),
+      swatchesWrap: $('[data-swatches-wrap]'), swatches: $('[data-swatches]'), colorName: $('[data-color-name]'),
+      play: $('[data-play]'), scrub: $('[data-scrub]'), prev: $('[data-prev]'), next: $('[data-next]'),
+      cur: $('[data-cur]'), total: $('[data-total]'), fill: $('[data-fill]'),
+      atc: $('[data-atc]'), atcLabel: $('[data-atc-label]'),
+      modal: $('[data-modal]'), modalBox: $('[data-modal-box]'), modalClose: $('[data-modal-close]')
+    };
+    var animEls = Array.prototype.slice.call(root.querySelectorAll('[data-anim]'));
+    var vEls = Array.prototype.slice.call(root.querySelectorAll('[data-vanim]'));
+
+    var RE_COLOR = /colou?r|couleur|farbe|colore|\bcor\b/i;
+    var RE_SIZE = /size|taille|talla|taglia|gr(ö|o)(ß|ss)e|tama(ñ|n)o|tamanho|pointure/i;
+
+    var hasGsap = false, index = 0, shoe = null, tl = null, busy = false;
+    var shadowLive = false, inView = false, started = false, hovering = false, galleryPos = 0;
+    var sel = [], autoTimer = null;
+
+    /* ---------- Color helpers ---------- */
+    var ctx = document.createElement('canvas').getContext('2d');
+    function toHex(c) {
+      if (!c) return null;
+      var s = String(c).trim();
+      ctx.fillStyle = '#010203';
+      ctx.fillStyle = s;
+      var v = ctx.fillStyle;
+      if (v === '#010203' && s.toLowerCase() !== '#010203') return null;
+      return /^#[0-9a-f]{6}$/i.test(v) ? v : null;
+    }
+    function resolveColor(name, hex) {
+      var h = toHex(hex); if (h) return h;
+      var n = String(name || '').trim().toLowerCase();
+      var tries = [n, n.replace(/\s+/g, '')].concat(n.split(/[\s\/&,+\-]+/));
+      for (var i = 0; i < tries.length; i++) { var r = tries[i] && toHex(tries[i]); if (r) return r; }
+      return null;
+    }
+    function rgb(h) { return [parseInt(h.substr(1, 2), 16), parseInt(h.substr(3, 2), 16), parseInt(h.substr(5, 2), 16)]; }
+    function mix(a, b, t) {
+      var x = rgb(a), y = rgb(b), o = '#';
+      for (var i = 0; i < 3; i++) { var v = Math.round(x[i] + (y[i] - x[i]) * t); o += ('0' + v.toString(16)).slice(-2); }
+      return o;
+    }
+    function lum(h) {
+      var c = rgb(h).map(function (v) { v /= 255; return v <= .03928 ? v / 12.92 : Math.pow((v + .055) / 1.055, 2.4); });
+      return .2126 * c[0] + .7152 * c[1] + .0722 * c[2];
+    }
+    function autoGlow(hex) {
+      if (!hex) return ['#222226', '#55555c'];
+      var L = lum(hex);
+      if (L < .06) return ['#1a1a1e', '#4a4a52'];
+      if (L > .78) return ['#868c96', '#d9dce1'];
+      return [mix(hex, '#000000', .26), mix(hex, '#ffffff', .2)];
+    }
+    var pad = function (n) { return (n < 10 ? '0' : '') + n; };
+    var clamp = function (v, a, b) { return Math.max(a, Math.min(b, v)); };
+
+    /* ---------- Slide model ---------- */
+    function prepare(s) {
+      var opts = s.optionValues || [];
+      s.ci = opts.findIndex(function (o) { return RE_COLOR.test(o.name); });
+      s.si = opts.findIndex(function (o) { return RE_SIZE.test(o.name); });
+      if (s.si < 0) {
+        s.si = opts.findIndex(function (o, i) {
+          return i !== s.ci && o.values.length && !(o.values.length === 1 && /default title/i.test(o.values[0].v));
+        });
+      }
+      s.colors = s.ci > -1 ? opts[s.ci].values.map(function (v) {
+        var hex = resolveColor(v.v, v.h), img = v.i;
+        if (!hex && !img) {
+          var vv = s.variants.find(function (x) { return x.i && x.o[s.ci] === v.v; });
+          if (vv) img = vv.i;
+        }
+        return { v: v.v, hex: hex, img: img };
+      }) : [];
+      s.sizes = s.si > -1 ? opts[s.si].values.map(function (v) { return v.v; }) : [];
+    }
+    function sizeAvail(s, color, size) {
+      return s.variants.some(function (v) {
+        return v.a && (s.ci < 0 || v.o[s.ci] === color) && (s.si < 0 || v.o[s.si] === size);
+      });
+    }
+    function ensureSize(i) {
+      var s = slides[i], st = sel[i];
+      if (s.si < 0) { st.size = null; return; }
+      if (st.size && sizeAvail(s, st.color, st.size)) return;
+      var f = s.sizes.find(function (z) { return sizeAvail(s, st.color, z); });
+      st.size = f || st.size || s.sizes[0] || null;
+    }
+    function initSel(i) {
+      var s = slides[i], c = null;
+      if (s.colors.length) {
+        var first = s.colors.find(function (x) {
+          return s.variants.some(function (v) { return v.a && v.o[s.ci] === x.v; });
+        });
+        c = (first || s.colors[0]).v;
+      }
+      sel[i] = { color: c, size: null };
+      ensureSize(i);
+    }
+    function pickVariant(i) {
+      var s = slides[i], st = sel[i];
+      var m = s.variants.filter(function (v) {
+        return (s.ci < 0 || v.o[s.ci] === st.color) && (s.si < 0 || v.o[s.si] === st.size);
+      });
+      return m.find(function (v) { return v.a; }) || m[0] || s.variants[0] || null;
+    }
+    function colorObj(i) {
+      var s = slides[i], c = sel[i].color;
+      return s.colors.find(function (x) { return x.v === c; }) || null;
+    }
+    function curHex(i) {
+      var s = slides[i], co = colorObj(i);
+      return toHex(s.swatchOverride) || (co && co.hex) || null;
+    }
+    function heroUrl(i) {
+      var s = slides[i];
+      if (s.hero) return s.hero;
+      var c = sel[i].color;
+      var v = s.variants.find(function (x) { return x.i && (s.ci < 0 || x.o[s.ci] === c); });
+      if (v) return v.i;
+      return s.images[0] ? s.images[0].l : null;
+    }
+    function glowFor(i) {
+      var s = slides[i];
+      var auto = autoGlow(curHex(i));
+      return [toHex(s.glow1) || auto[0], toHex(s.glow2) || auto[1]];
+    }
+
+    /* ---------- Shoe element ---------- */
+    function createShoe(i) {
+      var s = slides[i], url = heroUrl(i);
+      var wrap = document.createElement('div'); wrap.className = 'ks__shoe';
+      var inner = document.createElement('div'); inner.className = 'ks__shoe-inner';
+      wrap.appendChild(inner);
+      if (url) {
+        var img = document.createElement('img');
+        img.src = url; img.alt = (s.images[0] && s.images[0].a) || s.title || ''; img.decoding = 'async'; img.draggable = false;
+        inner.appendChild(img);
+      } else {
+        var c = curHex(i) || toHex(s.glow1) || '#222222';
+        inner.innerHTML =
+          '<svg viewBox="0 0 620 300" role="img" aria-label="Sneaker">' +
+          '<path d="M30 226 Q30 266 66 266 L548 266 Q592 266 592 236 L592 222 L30 222 Z" fill="#f5f5f2"/>' +
+          '<path d="M30 238 L592 238" stroke="rgba(0,0,0,.12)" stroke-width="3"/>' +
+          '<path d="M44 222 L44 168 Q44 146 78 144 L156 138 Q198 116 222 66 Q232 46 258 54 L306 78 Q346 98 388 118 Q478 138 548 188 Q592 204 592 222 Z" fill="' + c + '"/>' +
+          '<path d="M232 84 L292 112 M254 70 L320 100 M276 66 L340 94" stroke="rgba(255,255,255,.35)" stroke-width="5" stroke-linecap="round"/>' +
+          '<path d="M44 196 L360 196" stroke="rgba(255,255,255,.18)" stroke-width="3"/>' +
+          '</svg>';
+      }
+      el.stage.appendChild(wrap);
+      return wrap;
+    }
+
+    /* ---------- UI: slide-level ---------- */
+    function buildRating(s) {
+      el.rating.textContent = '';
+      var r = parseFloat(s.rating) || 0;
+      if (!cfg.show.rating || r <= 0) { el.rating.style.display = 'none'; return; }
+      el.rating.style.display = '';
+      var st = document.createElement('span'); st.className = 'ks__stars'; st.setAttribute('aria-hidden', 'true'); st.textContent = '★★★★★';
+      var f = document.createElement('span'); f.className = 'ks__stars-fill'; f.textContent = '★★★★★';
+      f.style.width = clamp(r / 5, 0, 1) * 100 + '%';
+      st.appendChild(f);
+      var sc = document.createElement('span'); sc.className = 'ks__score'; sc.textContent = r.toFixed(1);
+      el.rating.appendChild(st); el.rating.appendChild(sc);
+      if (cfg.show.reviewCount && s.ratingCount > 0) {
+        var rc = document.createElement('span'); rc.className = 'ks__reviews'; rc.textContent = '(' + s.ratingCount + ')';
+        el.rating.appendChild(rc);
+      }
+      var sr = document.createElement('span'); sr.className = 'ks__vh'; sr.textContent = 'Rated ' + r.toFixed(1) + ' out of 5';
+      el.rating.appendChild(sr);
+    }
+
+    function buildThumbs(i) {
+      var s = slides[i], imgs = s.images || [];
+      el.thumbs.textContent = '';
+      galleryPos = 0;
+      if (!cfg.show.thumbs || imgs.length < 2) { el.thumbs.style.display = 'none'; return; }
+      el.thumbs.style.display = '';
+      var cur = heroUrl(i), max = cfg.maxThumbs;
+      imgs.slice(0, max).forEach(function (t, k) {
+        var b = document.createElement('button');
+        b.type = 'button'; b.className = 'ks__thumb' + (t.l === cur ? ' is-active' : '');
+        b.setAttribute('aria-label', 'View image ' + (k + 1));
+        var im = document.createElement('img'); im.src = t.s; im.alt = ''; im.loading = 'lazy';
+        b.appendChild(im);
+        b.addEventListener('click', function () { galleryPos = k; showAngle(t.l, k); });
+        el.thumbs.appendChild(b);
+      });
+      var extra = imgs.length - max;
+      if (extra > 0) {
+        var m = document.createElement('button'); m.type = 'button'; m.className = 'ks__more';
+        m.textContent = '+' + extra; m.setAttribute('aria-label', 'Show more images');
+        m.addEventListener('click', function () {
+          galleryPos = (galleryPos + 1) % imgs.length;
+          showAngle(imgs[galleryPos].l, galleryPos);
+        });
+        el.thumbs.appendChild(m);
+      }
+    }
+
+    function showAngle(url, k) {
+      var img = shoe && shoe.querySelector('img');
+      if (!img) return;
+      Array.prototype.forEach.call(el.thumbs.querySelectorAll('.ks__thumb'), function (t, n) { t.classList.toggle('is-active', n === k); });
+      var pre = new Image();
+      pre.onload = function () {
+        if (hasGsap && !reduced) {
+          gsap.to(img, { opacity: 0, scale: .96, duration: .2, onComplete: function () {
+            img.src = url; gsap.to(img, { opacity: 1, scale: 1, duration: .45, ease: 'power3.out' });
+          }});
+        } else { img.src = url; }
+      };
+      pre.src = url;
+    }
+
+    function swatchModel(i) {
+      var s = slides[i], mode = cfg.swatchMode;
+      var useVariants = mode === 'variants' || (mode === 'auto' && s.colors.length > 1);
+      if (useVariants) {
+        return { type: 'variants', items: s.colors.map(function (c) {
+          return { key: c.v, hex: c.hex, img: c.img, label: c.v,
+            oos: !s.variants.some(function (v) { return v.a && v.o[s.ci] === c.v; }) };
+        })};
+      }
+      if (mode !== 'slides') return { type: 'none', items: [] };
+      return { type: 'slides', items: slides.map(function (x, k) {
+        return { key: k, hex: (toHex(x.swatchOverride) || (x.colors.length && x.colors.find(function (c) { return c.v === sel[k].color; }) || {}).hex || '#999999'),
+          label: x.name || x.title || ('Slide ' + (k + 1)) };
+      })};
+    }
+    var swModel = null;
+    function buildSwatches(i) {
+      swModel = swatchModel(i);
+      el.swatches.textContent = '';
+      var show = cfg.show.swatches && swModel.items.length > 1;
+      el.swatchesWrap.style.display = show ? '' : 'none';
+      if (!show) return;
+      swModel.items.forEach(function (it) {
+        var b = document.createElement('button');
+        b.type = 'button'; b.className = 'ks__swatch' + (it.oos ? ' is-oos' : '');
+        b.style.backgroundColor = it.hex || '#bbb';
+        if (it.img) b.style.backgroundImage = 'url(' + it.img + ')';
+        b.setAttribute('role', 'radio'); b.setAttribute('aria-label', it.label); b.title = it.label;
+        b.dataset.key = it.key;
+        b.addEventListener('click', function () {
+          if (swModel.type === 'variants') setColor(it.key);
+          else go(it.key, it.key > index ? 1 : -1);
+        });
+        el.swatches.appendChild(b);
+      });
+    }
+    function markSwatches(i) {
+      if (!swModel) return;
+      var activeKey = swModel.type === 'variants' ? sel[i].color : i;
+      Array.prototype.forEach.call(el.swatches.children, function (b) {
+        var on = String(b.dataset.key) === String(activeKey);
+        b.classList.toggle('is-active', on); b.setAttribute('aria-checked', on ? 'true' : 'false');
+      });
+      if (el.colorName) {
+        el.colorName.textContent = swModel.type === 'variants' ? (sel[i].color || '') : (swModel.type === 'slides' ? (slides[i].name || '') : '');
+        el.colorName.style.display = el.colorName.textContent && cfg.show.colorName ? '' : 'none';
+      }
+    }
+
+    function fillSlideUI(i) {
+      var s = slides[i], empty = !s.productId && !s.title;
+      var brand = s.brand;
+      el.brand.textContent = brand ? brand + ' —' : '';
+      el.brand.style.display = cfg.show.brand && brand ? '' : 'none';
+      var ttl = s.title || (empty ? cfg.labels.selectProduct : '');
+      el.title.textContent = '';
+      if (cfg.linkTitle && s.url) {
+        var a = document.createElement('a'); a.href = s.url; a.textContent = ttl; el.title.appendChild(a);
+      } else { el.title.textContent = ttl; }
+      var sub = s.subtitle || (empty ? cfg.labels.selectProductText : '');
+      el.sub.textContent = sub;
+      el.sub.style.display = cfg.show.subtitle && sub ? '' : 'none';
+      buildThumbs(i); buildRating(s); buildSwatches(i);
+      el.play.hidden = !(s.video && cfg.show.video);
+      el.cur.textContent = pad(i + 1); el.total.textContent = pad(slides.length);
+      root.setAttribute('aria-live', 'polite');
+    }
+
+    /* ---------- UI: variant-level ---------- */
+    function buildSizes(i) {
+      var s = slides[i], st = sel[i];
+      el.sizes.textContent = '';
+      if (!cfg.show.sizes || !s.sizes.length) { el.sizesWrap.style.display = 'none'; return; }
+      el.sizesWrap.style.display = '';
+      s.sizes.forEach(function (v) {
+        var av = sizeAvail(s, st.color, v);
+        if (!av && !cfg.showOos) return;
+        var b = document.createElement('button');
+        b.type = 'button'; b.className = 'ks__size' + (v === st.size ? ' is-active' : '') + (av ? '' : ' is-oos');
+        b.textContent = v; b.disabled = !av;
+        b.setAttribute('role', 'radio'); b.setAttribute('aria-checked', v === st.size ? 'true' : 'false');
+        b.addEventListener('click', function () {
+          sel[index].size = v;
+          Array.prototype.forEach.call(el.sizes.children, function (c) {
+            var on = c === b; c.classList.toggle('is-active', on); c.setAttribute('aria-checked', on ? 'true' : 'false');
+          });
+          fillPrice(index); updateAtc(index);
+          if (hasGsap && !reduced) gsap.fromTo(b, { scale: .88 }, { scale: 1, duration: .5, ease: 'elastic.out(1,.45)' });
+        });
+        el.sizes.appendChild(b);
+      });
+    }
+    function fillPrice(i) {
+      var v = pickVariant(i);
+      var show = cfg.show.price && v;
+      el.priceWrap.style.display = show ? '' : 'none';
+      if (!show) return;
+      el.price.textContent = v.p || '';
+      el.was.textContent = v.c || '';
+      el.was.style.display = v.c ? '' : 'none';
+    }
+    function updateAtc(i) {
+      var s = slides[i], v = pickVariant(i);
+      if (adding) return;
+      if (s.productId && v && !v.a) { el.atcLabel.textContent = cfg.labels.soldOut; el.atc.disabled = true; }
+      else { el.atcLabel.textContent = cfg.labels.atc; el.atc.disabled = false; }
+      var hex = cfg.hoverMode === 'product' ? (curHex(i) || cfg.hoverColor) : cfg.hoverColor;
+      var h = toHex(hex) || '#888888';
+      el.atc.style.setProperty('--ks-atc-hover', h);
+      el.atc.style.setProperty('--ks-atc-hover-text', lum(h) > .5 ? '#111111' : '#ffffff');
+    }
+    function fillVariantUI(i) {
+      buildSizes(i); fillPrice(i); markSwatches(i); updateAtc(i);
+    }
+
+    function setProgress(i) {
+      var v = (i + 1) / slides.length;
+      if (hasGsap && !reduced) gsap.to(el.fill, { scaleX: v, duration: .8 * (1 / cfg.speed), ease: 'power3.inOut' });
+      else el.fill.style.transform = 'scaleX(' + v + ')';
+    }
+
+    /* ---------- Shadow bound to shoe y / scale ---------- */
+    var stageH = 400, floorK = 1;
+    function measure() {
+      stageH = el.stage.clientHeight || 400;
+      floorK = (parseFloat(getComputedStyle(root).getPropertyValue('--ks-floor')) || .6) / .6;
+    }
+    window.addEventListener('resize', measure);
+    function syncShadow() {
+      if (!shadowLive || !shoe || !inView) return;
+      var y = gsap.getProperty(shoe, 'y'), x = gsap.getProperty(shoe, 'x');
+      var sx = gsap.getProperty(shoe, 'scaleX'), a = gsap.getProperty(shoe, 'opacity');
+      var H = stageH;
+      var k = clamp(1 - (Math.max(0, -y) / (H * 1.05)), 0, 1);
+      gsap.set(el.shadow, {
+        x: x * .94, scaleX: (.45 + .55 * k) * sx, scaleY: (.4 + .6 * k),
+        opacity: (.12 + .5 * k) * a * floorK
+      });
+    }
+
+    /* ---------- Transition ---------- */
+    function glowTo(i, dur) {
+      var g = glowFor(i);
+      if (hasGsap && !reduced) {
+        gsap.to(el.blobA, { color: g[0], duration: dur, ease: 'power2.inOut', overwrite: 'auto' });
+        gsap.to(el.blobB, { color: g[1], duration: dur, ease: 'power2.inOut', overwrite: 'auto' });
+        gsap.to(el.tintA, { color: g[0], duration: dur, ease: 'power2.inOut', overwrite: 'auto' });
+        gsap.to(el.tintB, { color: g[1], duration: dur, ease: 'power2.inOut', overwrite: 'auto' });
+      } else {
+        el.blobA.style.color = g[0]; el.blobB.style.color = g[1];
+        el.tintA.style.color = g[0]; el.tintB.style.color = g[1];
+      }
+    }
+    function entryVec() {
+      var mobile = window.innerWidth < 900, H = el.stage.clientHeight || 400;
+      var off = mobile ? 150 : 340;
+      switch (cfg.entry) {
+        case 'top-left': return { x: -off, y: -H * 1.1, r: -14 };
+        case 'top': return { x: 0, y: -H * 1.15, r: 0 };
+        case 'right': return { x: off * 1.5, y: -H * .35, r: 10 };
+        default: return { x: off, y: -H * 1.1, r: 14 };
+      }
+    }
+    function startIdle(node) {
+      if (reduced || !hasGsap || !cfg.idle || !cfg.floatAmount) return;
+      gsap.to(node, { y: -cfg.floatAmount, duration: 2.4, ease: 'sine.inOut', yoyo: true, repeat: -1 });
+    }
+    function land(next, t0) {
+      var B = cfg.bounce / 60;
+      tl.to(next, { opacity: 1, duration: .18, ease: 'none' }, t0);
+      tl.to(next, { x: 0, duration: .68, ease: 'power2.out' }, t0);
+      tl.to(next, { y: 0, rotation: 0, duration: .68, ease: 'power2.in' }, t0);
+      var t1 = t0 + .68;
+      tl.to(next, { scaleY: 1 - .1 * B, scaleX: 1 + .06 * B, duration: .08, ease: 'power1.out' }, t1);
+      if (B > 0) {
+        tl.to(next, { y: -30 * B, rotation: -1.2 * B, duration: .22, ease: 'power2.out' }, t1 + .06);
+        tl.to(next, { scaleY: 1 + .03 * B, scaleX: 1 - .015 * B, duration: .2, ease: 'power1.out' }, t1 + .08);
+        tl.to(next, { y: 0, rotation: 0, duration: .22, ease: 'power2.in' }, t1 + .28);
+        tl.to(next, { scaleY: 1 - .04 * B, scaleX: 1 + .025 * B, duration: .06, ease: 'power1.out' }, t1 + .5);
+        tl.to(next, { y: -9 * B, duration: .12, ease: 'power2.out' }, t1 + .54);
+        tl.to(next, { y: 0, duration: .12, ease: 'power2.in' }, t1 + .66);
+      }
+      tl.to(next, { scaleX: 1, scaleY: 1, duration: .7, ease: 'elastic.out(1, .35)' }, t1 + (B > 0 ? .6 : .08));
+    }
+    function swapText(i, mode) {
+      if (mode === 'slide') fillSlideUI(i);
+      fillVariantUI(i);
+      if (!hasGsap || reduced) return;
+      gsap.fromTo(mode === 'slide' ? animEls : vEls, { y: 16, opacity: 0 }, { y: 0, opacity: 1, duration: .7, ease: 'power3.out', stagger: .06, overwrite: true });
+    }
+
+    var loaded = {}, playTok = 0;
+    function warm(url, cb) {
+      if (!url || loaded[url]) { cb(); return; }
+      var im = new Image(), fin = false;
+      var done = function () { if (fin) return; fin = true; loaded[url] = 1; cb(); };
+      im.onload = function () { (im.decode ? im.decode().catch(function () {}) : Promise.resolve()).then(done); };
+      im.onerror = done; im.src = url;
+      setTimeout(done, 900);
+    }
+    function warmAll() {
+      slides.forEach(function (s, k) {
+        setTimeout(function () {
+          var u = heroUrl(k); if (u && !loaded[u]) { var im = new Image(); im.onload = function () { loaded[u] = 1; }; im.src = u; }
+        }, 300 + k * 250);
+      });
+    }
+    function play(dir, mode) {
+      var tok = ++playTok;
+      warm(heroUrl(index), function () { if (tok === playTok) doPlay(dir, mode); });
+    }
+    function doPlay(dir, mode) {
+      var i = index;
+      if (!hasGsap) {
+        if (shoe) shoe.remove();
+        shoe = createShoe(i); shoe.style.opacity = 1;
+        swapText(i, mode); setProgress(i); glowTo(i, 1);
+        schedule();
+        return;
+      }
+      if (tl && busy) tl.progress(1);
+      var prev = shoe;
+      if (prev) gsap.killTweensOf(prev);
+      busy = true; shadowLive = false;
+      var next = createShoe(i), e = entryVec();
+      gsap.set(next, { xPercent: -50, x: e.x, y: e.y, rotation: e.r, scale: 1.04, opacity: 0 });
+      glowTo(i, 1.3); setProgress(i);
+
+      tl = gsap.timeline({ onComplete: function () { if (prev && prev.parentNode) prev.remove(); busy = false; } });
+      tl.timeScale(cfg.speed);
+      if (prev) {
+        tl.to(prev, { x: -dir * 170, y: 150, rotation: -dir * 12, opacity: 0, duration: .5, ease: 'power3.in' }, 0);
+        tl.to(el.shadow, { opacity: 0, scaleX: .5, duration: .4, ease: 'power2.in' }, 0);
+      }
+      tl.call(function () { swapText(i, mode); }, null, .3);
+      tl.call(function () { shoe = next; shadowLive = true; }, null, .42);
+      land(next, .42);
+      tl.call(function () { startIdle(next); });
+      if (reduced) tl.progress(1);
+      schedule();
+    }
+
+    function go(to, dir) {
+      var n = slides.length;
+      to = ((to % n) + n) % n;
+      if (to === index) return;
+      index = to;
+      play(dir || 1, 'slide');
+    }
+    function setColor(val) {
+      var st = sel[index];
+      if (val === st.color) return;
+      var s = slides[index];
+      var oldK = s.colors.findIndex(function (c) { return c.v === st.color; });
+      var newK = s.colors.findIndex(function (c) { return c.v === val; });
+      st.color = val; ensureSize(index);
+      play(newK > oldK ? 1 : -1, 'color');
+    }
+    var nextSlide = function () { go(index + 1, 1); };
+    var prevSlide = function () { go(index - 1, -1); };
+
+    /* ---------- Autoplay ---------- */
+    function schedule() {
+      clearTimeout(autoTimer);
+      if (!cfg.autoplay || slides.length < 2) return;
+      autoTimer = setTimeout(function () {
+        if (inView && !hovering && !document.hidden && !el.modal.classList.contains('is-open') && !busy) nextSlide();
+        else schedule();
+      }, cfg.delay * 1000);
+    }
+
+    /* ---------- Parallax tilt ---------- */
+    function onTilt(e) {
+      if (!shoe || busy) return;
+      var inner = shoe.firstChild; if (!inner) return;
+      var r = el.stage.getBoundingClientRect();
+      var nx = clamp(((e.clientX - r.left) / r.width - .5) * 2, -1, 1);
+      var ny = clamp(((e.clientY - r.top) / r.height - .5) * 2, -1, 1);
+      gsap.to(inner, { transformPerspective: 900, rotationY: nx * 12, rotationX: -ny * 6, x: nx * 12, duration: .9, ease: 'power3.out', overwrite: 'auto' });
+    }
+    function onTiltLeave() {
+      if (!shoe || !shoe.firstChild) return;
+      gsap.to(shoe.firstChild, { rotationY: 0, rotationX: 0, x: 0, duration: 1.1, ease: 'elastic.out(1,.5)', overwrite: 'auto' });
+    }
+
+    /* ---------- Setup ---------- */
+    function setup() {
+      hasGsap = !!window.gsap;
+      slides.forEach(function (s, i) { prepare(s); });
+      slides.forEach(function (s, i) { initSel(i); });
+      if (slides.length < 2) { el.scrub.hidden = true; }
+      if (!hasGsap) root.classList.add('is-static');
+      else {
+        gsap.set(el.shadow, { xPercent: -50, opacity: 0, transformOrigin: '50% 50%' });
+        gsap.ticker.add(syncShadow);
+      }
+      measure(); fillSlideUI(0); fillVariantUI(0); setProgress(0); glowTo(0, .01);
+      shoe = createShoe(0);
+      if (!hasGsap) { requestAnimationFrame(function () { shoe.style.opacity = 1; }); return; }
+      gsap.set(shoe, { xPercent: -50, opacity: 0 });
+
+      var ready = function () {
+        if (started) return; started = true;
+        var e = entryVec();
+        gsap.set(shoe, { x: e.x, y: e.y, rotation: e.r, scale: 1.04 });
+        shadowLive = false;
+        tl = gsap.timeline(); tl.timeScale(cfg.speed);
+        tl.call(function () { shadowLive = true; }, null, 0);
+        if (reduced) { gsap.set(shoe, { x: 0, y: 0, rotation: 0, scale: 1, opacity: 1 }); return; }
+        gsap.fromTo(animEls, { y: 16, opacity: 0 }, { y: 0, opacity: 1, duration: .8, ease: 'power3.out', stagger: .07, delay: .1 });
+        land(shoe, 0);
+        tl.call(function () { startIdle(shoe); });
+        schedule();
+      };
+      if ('IntersectionObserver' in window) {
+        new IntersectionObserver(function (en) {
+          en.forEach(function (x) { inView = x.isIntersecting; if (x.isIntersecting) ready(); });
+        }, { threshold: .25 }).observe(root);
+      } else { inView = true; ready(); }
+
+      if (cfg.tilt && finePointer && !reduced) {
+        el.stage.addEventListener('pointermove', onTilt);
+        el.stage.addEventListener('pointerleave', onTiltLeave);
+      }
+    }
+
+    /* ---------- Controls ---------- */
+    el.next.addEventListener('click', nextSlide);
+    el.prev.addEventListener('click', prevSlide);
+    el.card.addEventListener('mouseenter', function () { hovering = true; });
+    el.card.addEventListener('mouseleave', function () { hovering = false; });
+
+    function onKey(e) {
+      if (!cfg.keyboard || !inView) return;
+      if (el.modal.classList.contains('is-open')) { if (e.key === 'Escape') closeModal(); return; }
+      var t = e.target, tag = t && t.tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || (t && t.isContentEditable)) return;
+      if (e.key === 'ArrowRight') nextSlide(); else if (e.key === 'ArrowLeft') prevSlide();
+    }
+    document.addEventListener('keydown', onKey);
+
+    if (cfg.swipe) {
+      var sx = 0, sy = 0, tracking = false;
+      el.stage.addEventListener('touchstart', function (e) {
+        var t = e.changedTouches[0]; sx = t.clientX; sy = t.clientY; tracking = true;
+      }, { passive: true });
+      el.stage.addEventListener('touchend', function (e) {
+        if (!tracking) return; tracking = false;
+        var t = e.changedTouches[0], dx = t.clientX - sx, dy = t.clientY - sy;
+        if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.3) { dx < 0 ? nextSlide() : prevSlide(); }
+      }, { passive: true });
+    }
+
+    if (cfg.wheel) {
+      var wheelLock = 0, acc = 0, lastW = 0;
+      el.stage.addEventListener('wheel', function (e) {
+        if (slides.length < 2 || Math.abs(e.deltaY) < Math.abs(e.deltaX)) return;
+        var now = Date.now(), dir = e.deltaY > 0 ? 1 : -1;
+        var atEdge = (dir > 0 && index === slides.length - 1) || (dir < 0 && index === 0);
+        if (atEdge && now >= wheelLock) return; // let the page scroll normally at the ends
+        e.preventDefault();
+        if (now < wheelLock) return;
+        if (now - lastW > 250) acc = 0;
+        lastW = now; acc += e.deltaY;
+        if (Math.abs(acc) < 30) return;
+        acc = 0; wheelLock = now + 1100;
+        if (dir > 0) nextSlide(); else prevSlide();
+      }, { passive: false });
+    }
+
+    /* ---------- Video modal ---------- */
+    function openModal() {
+      var url = slides[index].video; if (!url) return;
+      el.modalBox.textContent = '';
+      var yt = url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/))([\w-]{11})/);
+      var vm = url.match(/vimeo\.com\/(?:video\/)?(\d+)/);
+      var node;
+      if (yt) {
+        node = document.createElement('iframe');
+        node.src = 'https://www.youtube-nocookie.com/embed/' + yt[1] + '?autoplay=1&rel=0';
+        node.allow = 'autoplay; encrypted-media; picture-in-picture'; node.allowFullscreen = true;
+      } else if (vm) {
+        node = document.createElement('iframe');
+        node.src = 'https://player.vimeo.com/video/' + vm[1] + '?autoplay=1';
+        node.allow = 'autoplay; fullscreen; picture-in-picture'; node.allowFullscreen = true;
+      } else {
+        node = document.createElement('video');
+        node.src = url; node.controls = true; node.autoplay = true; node.playsInline = true;
+      }
+      el.modalBox.appendChild(node);
+      el.modal.classList.add('is-open');
+      el.modalClose.focus();
+      if (hasGsap && !reduced) gsap.fromTo(el.modalBox, { scale: .92, opacity: 0 }, { scale: 1, opacity: 1, duration: .45, ease: 'power3.out' });
+    }
+    function closeModal() { el.modal.classList.remove('is-open'); el.modalBox.textContent = ''; el.play.focus(); }
+    el.play.addEventListener('click', openModal);
+    el.modalClose.addEventListener('click', closeModal);
+    el.modal.addEventListener('click', function (e) { if (e.target === el.modal) closeModal(); });
+
+    /* ---------- Cart ---------- */
+    var adding = false, resetTimer = null;
+    function setLabel(txt) {
+      el.atcLabel.textContent = txt;
+      el.atcLabel.classList.remove('is-roll'); void el.atcLabel.offsetWidth; el.atcLabel.classList.add('is-roll');
+    }
+    function setAtcState(state, msg, hold) {
+      clearTimeout(resetTimer);
+      el.atc.classList.toggle('is-loading', state === 'loading');
+      el.atc.classList.toggle('is-added', state === 'added');
+      el.atc.setAttribute('aria-busy', state === 'loading' ? 'true' : 'false');
+      if (msg) setLabel(msg);
+      if (state === 'added' || state === 'error') {
+        resetTimer = setTimeout(function () {
+          el.atc.classList.remove('is-added', 'is-loading'); adding = false; updateAtc(index); setLabel(el.atcLabel.textContent);
+        }, hold || 1500);
+      }
+    }
+    function ripple(e) {
+      if (reduced) return;
+      var r = el.atc.getBoundingClientRect(), d = Math.max(r.width, r.height) * 2;
+      var n = document.createElement('span'); n.className = 'ks__atc-ripple';
+      n.style.width = n.style.height = d + 'px';
+      n.style.left = (e.clientX - r.left - d / 2) + 'px'; n.style.top = (e.clientY - r.top - d / 2) + 'px';
+      el.atc.appendChild(n); setTimeout(function () { n.remove(); }, 650);
+    }
+    el.atc.addEventListener('pointerdown', ripple);
+
+    function cartSectionIds() {
+      var ids = [];
+      Array.prototype.forEach.call(document.querySelectorAll('cart-items-component[data-section-id]'), function (n) {
+        var id = n.getAttribute('data-section-id'); if (id && ids.indexOf(id) < 0) ids.push(id);
+      });
+      return ids;
+    }
+    function notifyTheme(s, v, added) {
+      return fetch(CART_JSON, { headers: { Accept: 'application/json' } })
+        .then(function (r) { return r.json(); })
+        .then(function (c) {
+          var detail = {
+            resource: added || {}, sourceId: root.id,
+            data: { source: 'kinetic-stage-sneaker-showcase', itemCount: c.item_count, productId: String(s.productId), variantId: String(v.id), sections: (added && added.sections) || {} }
+          };
+          document.dispatchEvent(new CustomEvent('cart:update', { bubbles: true, detail: detail }));
+          ['cart:refresh', 'cart:updated'].forEach(function (n) { document.dispatchEvent(new CustomEvent(n, { bubbles: true, detail: detail })); });
+          if (cfg.afterAdd === 'drawer') {
+            setTimeout(function () {
+              var d = document.querySelector('cart-drawer-component');
+              if (d && typeof d.open === 'function') d.open();
+            }, 350);
+          }
+        })
+        .catch(function () {});
+    }
+    el.atc.addEventListener('click', function () {
+      if (adding) return;
+      var s = slides[index], v = pickVariant(index);
+      if (s.productId && v) {
+        if (!v.a) { setAtcState('error', cfg.labels.soldOut, 1400); return; }
+        adding = true; setAtcState('loading', null);
+        var body = { items: [{ id: v.id, quantity: 1 }] };
+        var ids = cartSectionIds(); if (ids.length) body.sections = ids.join(',');
+        fetch(CART_ADD, {
+          method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+          body: JSON.stringify(body)
+        }).then(function (r) { if (!r.ok) throw new Error('add failed'); return r.json(); })
+          .then(function (res) {
+            setAtcState('added', cfg.labels.added, 1600);
+            notifyTheme(s, v, res);
+            if (cfg.afterAdd === 'redirect') setTimeout(function () { window.location.href = cfg.cartUrl; }, 700);
+          })
+          .catch(function () { setAtcState('error', 'Try again', 1400); });
+      } else {
+        adding = true; setAtcState('added', cfg.labels.added, 1400);
+      }
+    });
+
+    /* ---------- Theme editor hooks ---------- */
+    function onBlockSelect(e) {
+      if (!root.contains(e.target)) return;
+      var id = e.detail && e.detail.blockId;
+      var i = slides.findIndex(function (s) { return s.id === id; });
+      if (i > -1) go(i, i > index ? 1 : -1);
+    }
+    function onUnload(e) {
+      if (!root.contains(e.target) && e.target !== root.parentNode && e.target.id !== root.id) return;
+      document.removeEventListener('keydown', onKey);
+      clearTimeout(autoTimer);
+      if (window.gsap) gsap.ticker.remove(syncShadow);
+      document.removeEventListener('shopify:block:select', onBlockSelect);
+      document.removeEventListener('shopify:section:unload', onUnload);
+    }
+    document.addEventListener('shopify:block:select', onBlockSelect);
+    document.addEventListener('shopify:section:unload', onUnload);
+
+    /* ---------- GSAP loader ---------- */
+    function boot() { setup(); if ('requestIdleCallback' in window) requestIdleCallback(warmAll); else setTimeout(warmAll, 1200); }
+    if (window.gsap) { boot(); }
+    else {
+      var existing = document.querySelector('script[data-ks-gsap]'), done = false;
+      var finish = function () { if (done) return; done = true; boot(); };
+      if (!existing) {
+        existing = document.createElement('script');
+        existing.src = GSAP_SRC; existing.async = true; existing.setAttribute('data-ks-gsap', '1');
+        document.head.appendChild(existing);
+      }
+      existing.addEventListener('load', finish);
+      existing.addEventListener('error', finish);
+      setTimeout(function () { if (window.gsap) finish(); }, 3000);
+    }
+  })();
+  </script>
+</section>
+
+{% schema %}
+{
+  "name": "Kinetic Stage Showcase",
+  "tag": "section",
+  "class": "ks-section",
+  "max_blocks": 10,
+  "settings": [
+    { "type": "paragraph", "content": "Each slide block is one product. Title, vendor, description, price, sizes, colors, gallery, video and reviews come from the product automatically." },
+
+    { "type": "header", "content": "Layout" },
+    { "type": "range", "id": "section_height", "label": "Section min height", "min": 60, "max": 140, "step": 5, "unit": "vh", "default": 100 },
+    { "type": "range", "id": "card_width", "label": "Card max width", "min": 900, "max": 2000, "step": 20, "unit": "px", "default": 1440, "info": "Set to match your header / page width." },
+    { "type": "checkbox", "id": "full_width", "label": "Full-width card (edge to edge)", "default": false },
+    { "type": "range", "id": "padding_x", "label": "Side padding (desktop)", "min": 0, "max": 120, "step": 4, "unit": "px", "default": 24 },
+    { "type": "range", "id": "padding_top", "label": "Padding top", "min": 0, "max": 160, "step": 4, "unit": "px", "default": 36 },
+    { "type": "range", "id": "padding_bottom", "label": "Padding bottom", "min": 0, "max": 160, "step": 4, "unit": "px", "default": 36 },
+    { "type": "range", "id": "card_padding", "label": "Card inner padding", "min": 16, "max": 72, "step": 2, "unit": "px", "default": 40 },
+    { "type": "range", "id": "card_radius", "label": "Card corner radius", "min": 0, "max": 64, "step": 2, "unit": "px", "default": 36 },
+    { "type": "checkbox", "id": "mirror_layout", "label": "Mirror layout (info right, controls left)", "default": false },
+
+    { "type": "header", "content": "Stage & shoe" },
+    { "type": "range", "id": "stage_height", "label": "Stage min height (desktop)", "min": 280, "max": 720, "step": 10, "unit": "px", "default": 420 },
+    { "type": "range", "id": "mobile_stage_height", "label": "Stage height (mobile)", "min": 220, "max": 460, "step": 10, "unit": "px", "default": 300 },
+    { "type": "range", "id": "shoe_scale", "label": "Shoe size", "min": 60, "max": 140, "step": 2, "unit": "%", "default": 100 },
+    { "type": "range", "id": "shoe_y", "label": "Shoe vertical position", "min": -30, "max": 30, "step": 1, "unit": "%", "default": 0 },
+    { "type": "range", "id": "shadow_y", "label": "Floor shadow vertical position", "min": -20, "max": 20, "step": 1, "unit": "%", "default": 0 },
+    { "type": "range", "id": "floor_shadow", "label": "Floor shadow strength", "min": 0, "max": 100, "step": 5, "unit": "%", "default": 60 },
+    { "type": "color", "id": "floor_shadow_color", "label": "Floor shadow color", "default": "#000000" },
+
+    { "type": "header", "content": "Brand & navigation" },
+    { "type": "checkbox", "id": "show_logo", "label": "Show logo", "default": true },
+    { "type": "image_picker", "id": "logo", "label": "Logo image" },
+    { "type": "range", "id": "logo_width", "label": "Logo image width", "min": 60, "max": 300, "step": 10, "unit": "px", "default": 120 },
+    { "type": "text", "id": "brand_text", "label": "Logo text (used if no image)", "default": "KINETIC" },
+
+    { "type": "header", "content": "Visible elements" },
+    { "type": "checkbox", "id": "show_brand", "label": "Brand / vendor tag", "default": false },
+    { "type": "checkbox", "id": "show_subtitle", "label": "Subtitle / description", "default": true },
+    { "type": "range", "id": "subtitle_words", "label": "Description length (words)", "min": 8, "max": 60, "step": 2, "default": 18 },
+    { "type": "checkbox", "id": "link_title", "label": "Title links to product page", "default": false },
+    { "type": "checkbox", "id": "show_thumbs", "label": "Gallery thumbnails", "default": true },
+    { "type": "range", "id": "max_thumbs", "label": "Thumbnails shown (rest = +N)", "min": 1, "max": 6, "step": 1, "default": 3 },
+    { "type": "range", "id": "thumb_size", "label": "Thumbnail size", "min": 40, "max": 90, "step": 2, "unit": "px", "default": 58 },
+    { "type": "checkbox", "id": "show_rating", "label": "Rating", "default": true },
+    { "type": "checkbox", "id": "show_review_count", "label": "Review count", "default": true },
+    { "type": "checkbox", "id": "show_sizes", "label": "Size selector", "default": true },
+    { "type": "checkbox", "id": "show_sold_out_sizes", "label": "Show sold-out sizes (crossed out)", "default": true },
+    { "type": "text", "id": "size_label", "label": "Size label", "default": "Size" },
+    { "type": "checkbox", "id": "show_swatches", "label": "Color swatches", "default": true },
+    { "type": "text", "id": "color_label", "label": "Color label", "default": "Color" },
+    { "type": "checkbox", "id": "show_color_name", "label": "Show selected color name", "default": false },
+    {
+      "type": "select", "id": "swatch_mode", "label": "Swatch behavior", "default": "auto",
+      "options": [
+        { "value": "auto", "label": "Auto (variant colors, else per slide)" },
+        { "value": "variants", "label": "Always product color variants" },
+        { "value": "slides", "label": "Always one swatch per slide" }
+      ]
+    },
+    { "type": "checkbox", "id": "show_price", "label": "Price", "default": true },
+    { "type": "checkbox", "id": "hide_zero_cents", "label": "Hide .00 cents", "default": true },
+    { "type": "checkbox", "id": "show_video", "label": "Play video button", "default": true },
+    { "type": "checkbox", "id": "show_scrubber", "label": "Slide scrubber", "default": true },
+
+    { "type": "header", "content": "Buttons & labels" },
+    { "type": "text", "id": "play_text", "label": "Play video label", "default": "Play Video" },
+    { "type": "text", "id": "atc_text", "label": "Add to cart label", "default": "Add to cart" },
+    { "type": "text", "id": "added_text", "label": "Added label", "default": "Added ✓" },
+    { "type": "text", "id": "sold_out_text", "label": "Sold out label", "default": "Sold out" },
+    { "type": "select", "id": "atc_style", "label": "Add to cart style", "default": "filled", "options": [{ "value": "filled", "label": "Filled" }, { "value": "outline", "label": "Outline" }] },
+    { "type": "select", "id": "atc_shape", "label": "Add to cart shape", "default": "pill", "options": [{ "value": "pill", "label": "Pill" }, { "value": "rounded", "label": "Rounded" }, { "value": "square", "label": "Square" }] },
+    { "type": "range", "id": "button_height", "label": "Button height", "min": 40, "max": 72, "step": 2, "unit": "px", "default": 54 },
+    { "type": "select", "id": "atc_hover_mode", "label": "Button hover fill", "default": "product", "options": [{ "value": "product", "label": "Match product color" }, { "value": "custom", "label": "Custom color" }] },
+    { "type": "color", "id": "atc_hover_color", "label": "Custom hover color", "default": "#c9a24a" },
+    { "type": "select", "id": "after_add", "label": "After adding to cart", "default": "drawer", "options": [{ "value": "drawer", "label": "Open cart drawer" }, { "value": "stay", "label": "Stay on page" }, { "value": "redirect", "label": "Go to cart page" }] },
+    { "type": "text", "id": "empty_title", "label": "Empty slide title", "default": "Choose a product" },
+    { "type": "text", "id": "empty_text", "label": "Empty slide text", "default": "Select a product in this slide block to load its details, price, sizes, colors and gallery." },
+
+    { "type": "header", "content": "Typography" },
+    { "type": "font_picker", "id": "heading_font", "label": "Heading font", "default": "helvetica_n7" },
+    { "type": "font_picker", "id": "body_font", "label": "Body font", "default": "helvetica_n4" },
+    { "type": "range", "id": "title_size", "label": "Title size (desktop)", "min": 24, "max": 96, "step": 2, "unit": "px", "default": 48 },
+    { "type": "range", "id": "mobile_title_size", "label": "Title size (mobile)", "min": 20, "max": 48, "step": 1, "unit": "px", "default": 32 },
+    { "type": "range", "id": "title_tracking", "label": "Title letter spacing", "min": -6, "max": 2, "step": 0.5, "default": -2 },
+    { "type": "select", "id": "title_transform", "label": "Title case", "default": "none", "options": [{ "value": "none", "label": "Normal" }, { "value": "uppercase", "label": "UPPERCASE" }, { "value": "capitalize", "label": "Capitalize" }] },
+    { "type": "range", "id": "subtitle_size", "label": "Subtitle size", "min": 12, "max": 22, "step": 1, "unit": "px", "default": 15 },
+    { "type": "range", "id": "price_size", "label": "Price size", "min": 20, "max": 80, "step": 2, "unit": "px", "default": 34 },
+    { "type": "range", "id": "body_size", "label": "Body text size", "min": 12, "max": 20, "step": 1, "unit": "px", "default": 15 },
+
+    { "type": "header", "content": "Colors" },
+    { "type": "color", "id": "canvas_color", "label": "Outer canvas", "default": "#0d0d0f" },
+    { "type": "color", "id": "card_bg", "label": "Card background", "default": "#f4f2ee" },
+    { "type": "checkbox", "id": "card_gradient", "label": "Card gradient", "default": false },
+    { "type": "color", "id": "card_bg_2", "label": "Card gradient end color", "default": "#e4e0d8" },
+    { "type": "range", "id": "card_opacity", "label": "Card opacity", "min": 30, "max": 100, "step": 2, "unit": "%", "default": 78 },
+    { "type": "color", "id": "card_border_color", "label": "Card border color", "default": "#ffffff" },
+    { "type": "range", "id": "card_border_opacity", "label": "Card border opacity", "min": 0, "max": 100, "step": 5, "unit": "%", "default": 35 },
+    { "type": "range", "id": "card_shadow", "label": "Card shadow strength", "min": 0, "max": 100, "step": 5, "unit": "%", "default": 70 },
+    { "type": "color", "id": "text_color", "label": "Text color", "default": "#111111" },
+    { "type": "range", "id": "muted_opacity", "label": "Secondary text opacity", "min": 30, "max": 90, "step": 5, "unit": "%", "default": 60 },
+    { "type": "color", "id": "price_color", "label": "Price color", "default": "#111111" },
+    { "type": "color", "id": "star_color", "label": "Star color", "default": "#f2a516" },
+    { "type": "color", "id": "button_bg", "label": "Button background", "default": "#111111" },
+    { "type": "color", "id": "button_text", "label": "Button text", "default": "#ffffff" },
+    { "type": "color", "id": "size_active_bg", "label": "Selected size background", "default": "#111111" },
+    { "type": "color", "id": "size_active_text", "label": "Selected size text", "default": "#ffffff" },
+    { "type": "color", "id": "swatch_ring", "label": "Selected swatch ring", "default": "#111111" },
+
+    { "type": "header", "content": "Ambient glow & texture" },
+    { "type": "range", "id": "glow_opacity", "label": "Glow opacity", "min": 20, "max": 100, "step": 5, "unit": "%", "default": 90 },
+    { "type": "range", "id": "glow_size", "label": "Glow size", "min": 40, "max": 120, "step": 2, "default": 70 },
+    { "type": "range", "id": "card_tint", "label": "Glow color shade inside card", "min": 0, "max": 100, "step": 5, "unit": "%", "default": 55, "info": "How much of the canvas color shows through the glass card." },
+    { "type": "range", "id": "card_blur", "label": "Card glass blur", "min": 0, "max": 60, "step": 2, "unit": "px", "default": 24 },
+    { "type": "range", "id": "grain_opacity", "label": "Film grain", "min": 0, "max": 30, "step": 1, "unit": "%", "default": 8 },
+
+    { "type": "header", "content": "Animation" },
+    { "type": "range", "id": "anim_speed", "label": "Animation speed", "min": 0.6, "max": 1.8, "step": 0.1, "default": 1 },
+    { "type": "range", "id": "bounce", "label": "Landing bounce", "min": 0, "max": 100, "step": 5, "unit": "%", "default": 60 },
+    { "type": "select", "id": "entry_from", "label": "Shoe enters from", "default": "top-right", "options": [{ "value": "top-right", "label": "Top right" }, { "value": "top-left", "label": "Top left" }, { "value": "top", "label": "Straight down" }, { "value": "right", "label": "Right" }] },
+    { "type": "checkbox", "id": "idle_float", "label": "Floating idle motion", "default": true },
+    { "type": "range", "id": "float_amount", "label": "Float height", "min": 0, "max": 20, "step": 1, "unit": "px", "default": 8 },
+    { "type": "checkbox", "id": "tilt", "label": "Mouse parallax tilt", "default": true },
+    { "type": "checkbox", "id": "autoplay", "label": "Autoplay slides", "default": false },
+    { "type": "range", "id": "autoplay_delay", "label": "Autoplay delay", "min": 3, "max": 15, "step": 1, "unit": "s", "default": 6 },
+    { "type": "checkbox", "id": "enable_keyboard", "label": "Arrow key navigation", "default": true },
+    { "type": "checkbox", "id": "enable_swipe", "label": "Touch swipe", "default": true },
+    { "type": "checkbox", "id": "enable_wheel", "label": "Mouse wheel over shoe changes slide", "default": true },
+
+    { "type": "header", "content": "Advanced" },
+    { "type": "textarea", "id": "custom_css", "label": "Custom CSS", "info": "Scope with .kinetic-stage-sneaker-showcase to avoid leaking." }
+  ],
+  "blocks": [
+    {
+      "type": "slide",
+      "name": "Slide / Product",
+      "settings": [
+        { "type": "product", "id": "product", "label": "Product", "info": "Title, vendor, description, price, sizes, colors, gallery and video are loaded from this product." },
+        { "type": "text", "id": "slide_name", "label": "Slide label (optional)", "info": "Used for accessibility and slide swatches." },
+
+        { "type": "header", "content": "Optional overrides" },
+        { "type": "text", "id": "brand_override", "label": "Brand name override" },
+        { "type": "text", "id": "title_override", "label": "Title override" },
+        { "type": "textarea", "id": "subtitle_override", "label": "Description override" },
+        { "type": "image_picker", "id": "hero_override", "label": "Hero image override", "info": "Transparent PNG / WebP. Leave empty to use the product (or selected color variant) image." },
+        { "type": "text", "id": "video_url", "label": "Video URL override", "info": "YouTube, Vimeo or .mp4. Empty = first product video." },
+
+        { "type": "header", "content": "Colors (optional)" },
+        { "type": "color", "id": "swatch_override", "label": "Swatch / base color override", "info": "Empty = taken from the product's Color option." },
+        { "type": "color", "id": "glow_color_1", "label": "Canvas color 1 (e.g. green)", "info": "Blurred color on the outer canvas and card. Empty = auto from the product color." },
+        { "type": "color", "id": "glow_color_2", "label": "Canvas color 2 (e.g. white)", "info": "Second blurred color. Empty = auto from the product color." },
+
+        { "type": "header", "content": "Rating fallback" },
+        { "type": "range", "id": "rating_score", "label": "Manual rating", "min": 0, "max": 5, "step": 0.1, "default": 0, "info": "Used only if the product has no reviews rating metafield. 0 hides it." }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Kinetic Stage Showcase",
+      "blocks": [
+        {
+          "type": "slide",
+          "settings": {
+            "slide_name": "Aurelle Noir",
+            "brand_override": "KINETIC",
+            "title_override": "Aurelle Noir",
+            "subtitle_override": "A technical knit upper that hugs the foot like a second skin, paired with a sculpted rubber sole.",
+            "swatch_override": "#111111",
+            "rating_score": 5
+          }
+        },
+        {
+          "type": "slide",
+          "settings": {
+            "slide_name": "Solène Ember",
+            "brand_override": "KINETIC",
+            "title_override": "Solène Ember",
+            "subtitle_override": "Warm tan suede meets orange mesh for a light, breathable fit.",
+            "swatch_override": "#e07a1f",
+            "rating_score": 4.8
+          }
+        },
+        {
+          "type": "slide",
+          "settings": {
+            "slide_name": "Vantage Ivoire",
+            "brand_override": "KINETIC",
+            "title_override": "Vantage Ivoire",
+            "subtitle_override": "Clean white calfskin leather on a tonal cupsole for a minimal yet luxurious look.",
+            "swatch_override": "#f2f2f2",
+            "rating_score": 4.9
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}
